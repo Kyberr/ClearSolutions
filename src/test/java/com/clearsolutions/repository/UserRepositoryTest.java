@@ -30,7 +30,7 @@ public class UserRepositoryTest {
   private UserRepository userRepository;
 
   @Test
-  void findAll_shouldReturnUsersBornInsidePeriod_whenSearchFilterContainsMinAndMaxBirthdate() {
+  void findAll_shouldReturnUsersHavingBirthdateInsidePeriod_whenSearchFilterContainsMinAndMaxBirthdate() {
     Pageable pageable = Pageable.ofSize(10);
     
     SearchFilter searchFilter = SearchFilter.builder()
@@ -45,7 +45,7 @@ public class UserRepositoryTest {
   }
 
   @Test
-  void findAll_shouldReturnUsersBornAfterSpecifiedDate_whenSearchFilterContainsMinBirthdate() {
+  void findAll_shouldReturnUsersHavingBirthdateAfterSpecifiedDate_whenSearchFilterContainsMinBirthdate() {
     Pageable pageable = Pageable.ofSize(10);
     SearchFilter searchFilter = SearchFilter.builder().minBirthdate(MAX_BIRTHDATE).build();
     Specification<User> specification = UserSpecification.getSpecification(searchFilter);
