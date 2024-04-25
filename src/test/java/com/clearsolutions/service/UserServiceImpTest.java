@@ -7,6 +7,7 @@ import com.clearsolutions.mapper.UserMapper;
 import com.clearsolutions.repository.UserRepository;
 import com.clearsolutions.repository.entity.User;
 import com.clearsolutions.service.dto.UserDto;
+import com.clearsolutions.service.specification.SearchFilter;
 import com.clearsolutions.util.TestDataGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,9 +15,14 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,6 +48,21 @@ public class UserServiceImpTest {
   private static final UserMapper USER_MAPPER = Mappers.getMapper(UserMapper.class);
 
   @Test
+  void search_shouldReturnPageWithUsers_whenRequested() {
+    ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
+    SearchFilter searchFilter = new SearchFilter();
+    Pageable pageable = Pageable.ofSize(10);
+    User user = TestDataGenerator.generateUserEntity();
+    Page<User> page = new PageImpl<>(List.of(user));
+    when(userRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+    Page<UserDto> foundPage = userService.search(searchFilter, pageable);
+    UserDto foundUser = foundPage.getContent().get(0);
+
+    verifyResults(user, foundUser);
+  }
+
+  @Test
   void createUser_shouldSaveAndReturnUser_whenRequested() {
     ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
     when(appConfig.getMinimalAgeInYears()).thenReturn(MINIMAL_AGE_IN_YEAR);
@@ -54,13 +75,17 @@ public class UserServiceImpTest {
 
     UserDto savedUser = userService.createUser(userDto);
 
-    assertEquals(user.getId(), savedUser.getId());
-    assertEquals(user.getEmail(), savedUser.getEmail());
-    assertEquals(user.getFirstName(), savedUser.getFirstName());
-    assertEquals(user.getLastName(), savedUser.getLastName());
-    assertEquals(user.getBirthdate(), savedUser.getBirthdate());
-    assertEquals(user.getAddress(), savedUser.getAddress());
-    assertEquals(user.getPhoneNumber(), savedUser.getPhoneNumber());
+    verifyResults(user, savedUser);
+  }
+
+  private void verifyResults(User expectedUserData, UserDto actualUserData) {
+    assertEquals(expectedUserData.getId(), actualUserData.getId());
+    assertEquals(expectedUserData.getEmail(), actualUserData.getEmail());
+    assertEquals(expectedUserData.getFirstName(), actualUserData.getFirstName());
+    assertEquals(expectedUserData.getLastName(), actualUserData.getLastName());
+    assertEquals(expectedUserData.getBirthdate(), actualUserData.getBirthdate());
+    assertEquals(expectedUserData.getAddress(), actualUserData.getAddress());
+    assertEquals(expectedUserData.getPhoneNumber(), actualUserData.getPhoneNumber());
   }
 
   @Test
