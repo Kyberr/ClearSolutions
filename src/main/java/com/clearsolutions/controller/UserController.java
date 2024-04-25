@@ -2,7 +2,10 @@ package com.clearsolutions.controller;
 
 import com.clearsolutions.service.UserService;
 import com.clearsolutions.service.dto.UserDto;
-import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -16,6 +19,11 @@ import java.net.URI;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+/**
+ * REST controller for managing user data.
+ *
+ * @author Oleksandr Semenchenko
+ */
 @RestController
 @RequestMapping("/v1/users")
 @RequiredArgsConstructor
@@ -26,8 +34,38 @@ public class UserController {
 
   private final UserService userService;
 
+  /**
+   * Creates a user if the data contains a first name, a last name, a birthdate, and an email.
+   * The user's age also must be greater than 18 years old and the email must have a valid format.
+   *
+   * @param user - user data
+   * @return ResponseEntity<Void>
+   */
+  @Operation(
+      summary = "Creates a user",
+      operationId = "createUser",
+      description = "Creates a user that has all required data including valid age and a unique email",
+      responses = {
+          @ApiResponse(
+              responseCode = "201",
+              description = "A user has been crated"
+          ),
+          @ApiResponse(
+              responseCode = "400",
+              description = "User data has is not valid",
+              content = @Content(examples = @ExampleObject("""
+                  {
+                    "timestamp": "2024-04-25T14:10:54.715989458",
+                    "errorCode": 400,
+                    "details": "The user's age must be over 18 years"
+                  }
+                  """
+              ))
+          )
+      }
+  )
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<UserDto> createUser(@RequestBody @Validated  UserDto user) {
+  public ResponseEntity<Void> createUser(@RequestBody @Validated  UserDto user) {
     UserDto createdUser = userService.createUser(user);
     URI location = ServletUriComponentsBuilder.fromCurrentServletMapping()
         .path(V1 + USER_URL)

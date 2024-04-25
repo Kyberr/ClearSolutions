@@ -7,12 +7,10 @@ import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.util.TestDataGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,9 +25,6 @@ public class UserControllerTest {
 
   private static final String V1 = "/v1";
   private static final String USERS_URL = "/users";
-  private static final String DETAILS_FIELD = "details";
-  private static final String ERROR_CODE_FIELD = "errorCode";
-  private static final String TIMESTAMP_FILED = "timestamp";
 
   @Autowired
   private MockMvc mockMvc;
