@@ -2,6 +2,7 @@ package com.clearsolutions.service;
 
 import com.clearsolutions.config.AppConfig;
 import com.clearsolutions.exceptionhandler.exceptions.EmailNotUniqueException;
+import com.clearsolutions.exceptionhandler.exceptions.PeriodNotValidException;
 import com.clearsolutions.exceptionhandler.exceptions.UserAgeViolationException;
 import com.clearsolutions.mapper.UserMapper;
 import com.clearsolutions.repository.UserRepository;
@@ -35,6 +36,8 @@ public class UserServiceImpTest {
   private static final int ONE_YEAR = 1;
   private static final int MINIMAL_AGE_IN_YEAR = 18;
   private static final String USER_MAPPER_FIELD = "userMapper";
+  private static final LocalDate MAX_BIRTHDATE = LocalDate.of(1970, 1, 1);
+  private static final LocalDate MIN_BIRTHDATE = LocalDate.of(1965, 1, 1);
 
   @InjectMocks
   private UserServiceImp userService;
@@ -48,9 +51,36 @@ public class UserServiceImpTest {
   private static final UserMapper USER_MAPPER = Mappers.getMapper(UserMapper.class);
 
   @Test
-  void search_shouldReturnPageWithUsers_whenRequested() {
+  void search_shouldThrowPeriodNotValidException_whenMinBirthdateIsAfterMaxBirthdate() {
+    SearchFilter searchFilter = SearchFilter.builder()
+        .maxBirthdate(MIN_BIRTHDATE)
+        .minBirthdate(MAX_BIRTHDATE).build();
+    Pageable pageable = Pageable.unpaged();
+
+    assertThrows(PeriodNotValidException.class, () -> userService.search(searchFilter, pageable));
+  }
+
+  @Test
+  void search_shouldReturnPageWithUsers_whenMinBirthdateAndMaxBirthdateAreNull() {
     ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
     SearchFilter searchFilter = new SearchFilter();
+    Pageable pageable = Pageable.ofSize(10);
+    User user = TestDataGenerator.generateUserEntity();
+    Page<User> page = new PageImpl<>(List.of(user));
+    when(userRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+    Page<UserDto> foundPage = userService.search(searchFilter, pageable);
+    UserDto foundUser = foundPage.getContent().get(0);
+
+    verifyResults(user, foundUser);
+  }
+
+  @Test
+  void search_shouldReturnPageWithUsers_whenMinBirthdateIsBeforeMaxBirthdate() {
+    ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
+    SearchFilter searchFilter = SearchFilter.builder()
+        .minBirthdate(MIN_BIRTHDATE)
+        .maxBirthdate(MIN_BIRTHDATE).build();
     Pageable pageable = Pageable.ofSize(10);
     User user = TestDataGenerator.generateUserEntity();
     Page<User> page = new PageImpl<>(List.of(user));

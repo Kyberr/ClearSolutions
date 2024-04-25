@@ -23,8 +23,8 @@ public class UserRepositoryTest {
 
   private static final String EXISTING_EMAIL = "email@com";
   private static final String NOTE_EXISTING_EMAIL = "notExisted@com";
-  private static final LocalDate LATER_DATE = LocalDate.of(1970, 1, 1);
-  private static final LocalDate EARLIER_DATE = LocalDate.of(1965, 1, 1);
+  private static final LocalDate MAX_BIRTHDATE = LocalDate.of(1970, 1, 1);
+  private static final LocalDate MIN_BIRTHDATE = LocalDate.of(1965, 1, 1);
 
   @Autowired
   private UserRepository userRepository;
@@ -34,8 +34,8 @@ public class UserRepositoryTest {
     Pageable pageable = Pageable.ofSize(10);
     
     SearchFilter searchFilter = SearchFilter.builder()
-        .minBirthdate(EARLIER_DATE)
-        .maxBirthdate(LATER_DATE)
+        .minBirthdate(MIN_BIRTHDATE)
+        .maxBirthdate(MAX_BIRTHDATE)
         .build();
     Specification<User> specification = UserSpecification.getSpecification(searchFilter);
     Page<User> page = userRepository.findAll(specification, pageable);
@@ -47,7 +47,7 @@ public class UserRepositoryTest {
   @Test
   void findAll_shouldReturnUsersBornAfterSpecifiedDate_whenSearchFilterContainsMinBirthdate() {
     Pageable pageable = Pageable.ofSize(10);
-    SearchFilter searchFilter = SearchFilter.builder().minBirthdate(LATER_DATE).build();
+    SearchFilter searchFilter = SearchFilter.builder().minBirthdate(MAX_BIRTHDATE).build();
     Specification<User> specification = UserSpecification.getSpecification(searchFilter);
     Page<User> page = userRepository.findAll(specification, pageable);
 
@@ -58,7 +58,7 @@ public class UserRepositoryTest {
   @Test
   void findAll_shouldReturnUsersBornBeforeSpecifiedDate_whenSearchFilterContainsMaxBirthdate() {
     Pageable pageable = Pageable.ofSize(10);
-    SearchFilter searchFilter = SearchFilter.builder().maxBirthdate(LATER_DATE).build();
+    SearchFilter searchFilter = SearchFilter.builder().maxBirthdate(MAX_BIRTHDATE).build();
     Specification<User> specification = UserSpecification.getSpecification(searchFilter);
     Page<User> page = userRepository.findAll(specification, pageable);
 

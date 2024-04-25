@@ -2,6 +2,7 @@ package com.clearsolutions.service;
 
 import com.clearsolutions.config.AppConfig;
 import com.clearsolutions.exceptionhandler.exceptions.EmailNotUniqueException;
+import com.clearsolutions.exceptionhandler.exceptions.PeriodNotValidException;
 import com.clearsolutions.exceptionhandler.exceptions.UserAgeViolationException;
 import com.clearsolutions.mapper.UserMapper;
 import com.clearsolutions.repository.UserRepository;
@@ -18,6 +19,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Objects;
+
+import static java.util.Objects.nonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -60,7 +64,15 @@ public class UserServiceImp implements UserService {
 
   @Override
   public Page<UserDto> search(SearchFilter searchFilter, Pageable pageable) {
+    verifyPeriod(searchFilter.getMinBirthdate(), searchFilter.getMaxBirthdate());
     Specification<User> specification = UserSpecification.getSpecification(searchFilter);
     return userRepository.findAll(specification, pageable).map(userMapper::toDto);
+  }
+
+  private void verifyPeriod(LocalDate from, LocalDate to) {
+    if (nonNull(from) && nonNull(to) && from.isAfter(to)) {
+      log.debug("The value of maxBirthdate=%s cannot be earlier minBirthdate=%s".formatted(from, to));
+      throw new PeriodNotValidException(from, to);
+    }
   }
 }
