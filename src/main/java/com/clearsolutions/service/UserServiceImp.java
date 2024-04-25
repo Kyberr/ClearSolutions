@@ -7,8 +7,13 @@ import com.clearsolutions.mapper.UserMapper;
 import com.clearsolutions.repository.UserRepository;
 import com.clearsolutions.repository.entity.User;
 import com.clearsolutions.service.dto.UserDto;
+import com.clearsolutions.service.specification.SearchFilter;
+import com.clearsolutions.service.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -51,5 +56,11 @@ public class UserServiceImp implements UserService {
     User user = userMapper.toEntity(userDto);
     User savedUser = userRepository.save(user);
     return userMapper.toDto(savedUser);
+  }
+
+  @Override
+  public Page<UserDto> search(SearchFilter searchFilter, Pageable pageable) {
+    Specification<User> specification = UserSpecification.getSpecification(searchFilter);
+    return userRepository.findAll(specification, pageable).map(userMapper::toDto);
   }
 }
