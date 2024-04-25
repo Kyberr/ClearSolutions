@@ -36,7 +36,7 @@ public class UserController {
 
   /**
    * Creates a user if the data contains a first name, a last name, a birthdate, and an email.
-   * The user's age also must be greater than 18 years old and the email must have a valid format.
+   * The user's age also must be greater than 18 years old and the email must be unique and have a valid format.
    *
    * @param user - user data
    * @return ResponseEntity<Void>
@@ -52,12 +52,12 @@ public class UserController {
           ),
           @ApiResponse(
               responseCode = "400",
-              description = "User data has is not valid",
+              description = "User data is not valid",
               content = @Content(examples = @ExampleObject("""
                   {
                     "timestamp": "2024-04-25T14:10:54.715989458",
                     "errorCode": 400,
-                    "details": "The user's age must be over 18 years"
+                    "details": "The user's age must be over 18 years old"
                   }
                   """
               ))

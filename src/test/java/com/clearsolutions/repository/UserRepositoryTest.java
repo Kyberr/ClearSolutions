@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@Sql(scripts = "/db/user-data.sql")
+@Sql(scripts = "/db/users-data.sql")
 public class UserRepositoryTest {
 
   private static final String EXISTING_EMAIL = "email@com";

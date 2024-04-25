@@ -82,7 +82,6 @@ public class UserServiceImpTest {
   @Test
   void createUser_shouldThrowUserAgeViolationException_whenUserAgeIsNotValid() {
     when(appConfig.getMinimalAgeInYears()).thenReturn(MINIMAL_AGE_IN_YEAR);
-
     UserDto userDto = TestDataGenerator.generateUserDto();
     LocalDate notValidUserBirthday = generateNotValidUserBirthday();
     userDto.setBirthdate(notValidUserBirthday);

@@ -61,8 +61,6 @@ public class UserControllerTest {
         .andExpect(jsonPath("$.timestamp").isNotEmpty());
   }
 
-
-
   @Test
   void createUser_shouldReturnStatus400_whenRequestBodyHasBadFormat() throws Exception {
     String notValidEmail = "addfd";
