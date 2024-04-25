@@ -2,11 +2,13 @@ package com.clearsolutions.service;
 
 import com.clearsolutions.config.AppConfig;
 import com.clearsolutions.exceptionhandler.exceptions.EmailNotUniqueException;
+import com.clearsolutions.exceptionhandler.exceptions.PeriodNotValidException;
 import com.clearsolutions.exceptionhandler.exceptions.UserAgeViolationException;
 import com.clearsolutions.mapper.UserMapper;
 import com.clearsolutions.repository.UserRepository;
 import com.clearsolutions.repository.entity.User;
 import com.clearsolutions.service.dto.UserDto;
+import com.clearsolutions.service.specification.SearchFilter;
 import com.clearsolutions.util.TestDataGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,9 +16,14 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,6 +36,8 @@ public class UserServiceImpTest {
   private static final int ONE_YEAR = 1;
   private static final int MINIMAL_AGE_IN_YEAR = 18;
   private static final String USER_MAPPER_FIELD = "userMapper";
+  private static final LocalDate MAX_BIRTHDATE = LocalDate.of(1970, 1, 1);
+  private static final LocalDate MIN_BIRTHDATE = LocalDate.of(1965, 1, 1);
 
   @InjectMocks
   private UserServiceImp userService;
@@ -40,6 +49,48 @@ public class UserServiceImpTest {
   private AppConfig appConfig;
 
   private static final UserMapper USER_MAPPER = Mappers.getMapper(UserMapper.class);
+
+  @Test
+  void searchUsers_shouldThrowPeriodNotValidException_whenMinBirthdateIsAfterMaxBirthdate() {
+    SearchFilter searchFilter = SearchFilter.builder()
+        .maxBirthdate(MIN_BIRTHDATE)
+        .minBirthdate(MAX_BIRTHDATE).build();
+    Pageable pageable = Pageable.unpaged();
+
+    assertThrows(PeriodNotValidException.class, () -> userService.searchUsers(searchFilter, pageable));
+  }
+
+  @Test
+  void searchUsers_shouldReturnPageWithUsers_whenMinBirthdateAndMaxBirthdateAreNull() {
+    ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
+    SearchFilter searchFilter = new SearchFilter();
+    Pageable pageable = Pageable.ofSize(10);
+    User user = TestDataGenerator.generateUserEntity();
+    Page<User> page = new PageImpl<>(List.of(user));
+    when(userRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+    Page<UserDto> foundPage = userService.searchUsers(searchFilter, pageable);
+    UserDto foundUser = foundPage.getContent().get(0);
+
+    verifyResults(user, foundUser);
+  }
+
+  @Test
+  void searchUsers_shouldReturnPageWithUsers_whenMinBirthdateIsBeforeMaxBirthdate() {
+    ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
+    SearchFilter searchFilter = SearchFilter.builder()
+        .minBirthdate(MIN_BIRTHDATE)
+        .maxBirthdate(MIN_BIRTHDATE).build();
+    Pageable pageable = Pageable.ofSize(10);
+    User user = TestDataGenerator.generateUserEntity();
+    Page<User> page = new PageImpl<>(List.of(user));
+    when(userRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+    Page<UserDto> foundPage = userService.searchUsers(searchFilter, pageable);
+    UserDto foundUser = foundPage.getContent().get(0);
+
+    verifyResults(user, foundUser);
+  }
 
   @Test
   void createUser_shouldSaveAndReturnUser_whenRequested() {
@@ -54,13 +105,17 @@ public class UserServiceImpTest {
 
     UserDto savedUser = userService.createUser(userDto);
 
-    assertEquals(user.getId(), savedUser.getId());
-    assertEquals(user.getEmail(), savedUser.getEmail());
-    assertEquals(user.getFirstName(), savedUser.getFirstName());
-    assertEquals(user.getLastName(), savedUser.getLastName());
-    assertEquals(user.getBirthdate(), savedUser.getBirthdate());
-    assertEquals(user.getAddress(), savedUser.getAddress());
-    assertEquals(user.getPhoneNumber(), savedUser.getPhoneNumber());
+    verifyResults(user, savedUser);
+  }
+
+  private void verifyResults(User expectedUserData, UserDto actualUserData) {
+    assertEquals(expectedUserData.getId(), actualUserData.getId());
+    assertEquals(expectedUserData.getEmail(), actualUserData.getEmail());
+    assertEquals(expectedUserData.getFirstName(), actualUserData.getFirstName());
+    assertEquals(expectedUserData.getLastName(), actualUserData.getLastName());
+    assertEquals(expectedUserData.getBirthdate(), actualUserData.getBirthdate());
+    assertEquals(expectedUserData.getAddress(), actualUserData.getAddress());
+    assertEquals(expectedUserData.getPhoneNumber(), actualUserData.getPhoneNumber());
   }
 
   @Test

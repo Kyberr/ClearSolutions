@@ -1,5 +1,7 @@
 package com.clearsolutions.exceptionhandler;
 
+import com.clearsolutions.exceptionhandler.exceptions.EmailNotUniqueException;
+import com.clearsolutions.exceptionhandler.exceptions.PeriodNotValidException;
 import com.clearsolutions.exceptionhandler.exceptions.RestrictionViolationException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,12 @@ public class ServiceExceptionHandler {
   private static final String DETAILS_FIELD = "details";
   private static final String ERROR_CODE_FIELD = "errorCode";
   private static final String TIMESTAMP_FILED = "timestamp";
+
+  @ExceptionHandler(EmailNotUniqueException.class)
+  protected ResponseEntity<Object> handleEmailNotUniqueException(EmailNotUniqueException e) {
+    Map<String, Object> responseBody = buildErrorResponseBody(HttpStatus.CONFLICT, e.getMessage());
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(responseBody);
+  }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   protected ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {

@@ -1,6 +1,6 @@
 package com.clearsolutions.exceptionhandler.exceptions;
 
-public class EmailNotUniqueException extends RestrictionViolationException {
+public class EmailNotUniqueException extends RuntimeException {
 
   private static final String MESSAGE = "User with email %s already exists";
 
