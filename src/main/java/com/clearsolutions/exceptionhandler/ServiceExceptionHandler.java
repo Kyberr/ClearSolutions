@@ -1,14 +1,18 @@
 package com.clearsolutions.exceptionhandler;
 
 import com.clearsolutions.exceptionhandler.exceptions.RestrictionViolationException;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ServiceExceptionHandler {
@@ -16,6 +20,20 @@ public class ServiceExceptionHandler {
   private static final String DETAILS_FIELD = "details";
   private static final String ERROR_CODE_FIELD = "errorCode";
   private static final String TIMESTAMP_FILED = "timestamp";
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  protected ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    Map<String, String> validationDetails = getMethodArgumentValidationDetails(e);
+    Map<String, Object> responseBody = buildErrorResponseBody(HttpStatus.BAD_REQUEST, validationDetails);
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(responseBody);
+  }
+
+  private Map<String, String> getMethodArgumentValidationDetails(MethodArgumentNotValidException e) {
+    return e.getBindingResult().getFieldErrors().stream()
+        .collect(Collectors.toMap(
+            FieldError::getField,
+            DefaultMessageSourceResolvable::getDefaultMessage));
+  }
 
   @ExceptionHandler(RestrictionViolationException.class)
   protected ResponseEntity<Object> handleRestrictionViolationException(RestrictionViolationException e) {
@@ -30,6 +48,4 @@ public class ServiceExceptionHandler {
     body.put(DETAILS_FIELD, message);
     return body;
   }
-
-  //TODO
 }

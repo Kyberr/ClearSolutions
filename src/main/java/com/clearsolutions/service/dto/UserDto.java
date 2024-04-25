@@ -2,6 +2,7 @@ package com.clearsolutions.service.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +29,7 @@ public class UserDto {
   @NotBlank
   private String lastName;
 
-  @NotBlank
+  @NotNull
   private LocalDate birthdate;
   private String address;
   private String phoneNumber;
