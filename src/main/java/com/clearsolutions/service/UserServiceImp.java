@@ -71,7 +71,7 @@ public class UserServiceImp implements UserService {
 
   private void verifyPeriod(LocalDate from, LocalDate to) {
     if (nonNull(from) && nonNull(to) && from.isAfter(to)) {
-      log.debug("The value of maxBirthdate=%s cannot be earlier minBirthdate=%s".formatted(from, to));
+      log.debug("The value of maxBirthdate=%s cannot be before minBirthdate=%s".formatted(from, to));
       throw new PeriodNotValidException(from, to);
     }
   }

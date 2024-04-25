@@ -99,7 +99,7 @@ public class UserController {
    * @return Page<UserDto>
    */
   @Operation(
-      summary = "Searches users",
+      summary = "Searches for users",
       operationId = "searchUser",
       description = "Searches for users using minBirthdate and maxBirthdate parameters",
       responses = {

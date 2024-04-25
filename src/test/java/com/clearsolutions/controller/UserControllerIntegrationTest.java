@@ -3,14 +3,10 @@ package com.clearsolutions.controller;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.util.TestDataGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hamcrest.Matchers;
-import org.hibernate.query.sql.internal.ParameterRecognizerImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +43,7 @@ public class UserControllerIntegrationTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void searchUsers_shouldReturnStatus200AndBody_whenRequested() throws Exception {
+  void searchUsers_shouldReturnStatus200AndBody_whenMinBirthdateIsBeforeMaxBithdate() throws Exception {
     String maxBirthdate = "1970-01-01";
     String minBirthdate = "1965-01-01";
     mockMvc.perform(get(USERS_URL).accept(APPLICATION_JSON)
