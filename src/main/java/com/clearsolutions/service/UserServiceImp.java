@@ -63,7 +63,7 @@ public class UserServiceImp implements UserService {
   }
 
   @Override
-  public Page<UserDto> search(SearchFilter searchFilter, Pageable pageable) {
+  public Page<UserDto> searchUsers(SearchFilter searchFilter, Pageable pageable) {
     verifyPeriod(searchFilter.getMinBirthdate(), searchFilter.getMaxBirthdate());
     Specification<User> specification = UserSpecification.getSpecification(searchFilter);
     return userRepository.findAll(specification, pageable).map(userMapper::toDto);

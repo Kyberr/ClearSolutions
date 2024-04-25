@@ -15,8 +15,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -44,8 +42,9 @@ public class UserControllerTest {
   private UserService userService;
 
   @Test
-  void search_shouldReturnStatus400_whenSearchParametersAreNotValid() throws Exception {
-    when(userService.search(any(SearchFilter.class), any(Pageable.class))).thenThrow(PeriodNotValidException.class);
+  void searchUsers_shouldReturnStatus400_whenSearchParametersAreNotValid() throws Exception {
+    when(userService.searchUsers(any(SearchFilter.class), any(Pageable.class)))
+        .thenThrow(PeriodNotValidException.class);
     mockMvc.perform(get(V1 + USERS_URL).accept(APPLICATION_JSON)
         .param("maxBirthdate", MAX_BIRTHDATE)
         .param("minBirthdate", MIN_BIRTHDATE))
@@ -69,15 +68,15 @@ public class UserControllerTest {
   }
 
   @Test
-  void createUser_shouldReturnStatus400_whenEmailIsNotUnique() throws Exception {
+  void createUser_shouldReturnStatus409_whenEmailIsNotUnique() throws Exception {
     UserDto userDto = TestDataGenerator.generateUserDto();
     String requestBody = objectMapper.writeValueAsString(userDto);
     when(userService.createUser(any(UserDto.class))).thenThrow(EmailNotUniqueException.class);
 
     mockMvc.perform(post(V1 + USERS_URL).contentType(APPLICATION_JSON).content(requestBody))
-        .andExpect(status().isBadRequest())
+        .andExpect(status().isConflict())
         .andExpect(jsonPath("$.details").hasJsonPath())
-        .andExpect(jsonPath("$.errorCode", is(400)))
+        .andExpect(jsonPath("$.errorCode", is(409)))
         .andExpect(jsonPath("$.timestamp").isNotEmpty());
   }
 

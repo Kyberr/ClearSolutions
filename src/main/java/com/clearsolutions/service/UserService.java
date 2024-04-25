@@ -9,5 +9,5 @@ public interface UserService {
 
   UserDto createUser(UserDto user);
 
-  Page<UserDto> search(SearchFilter searchFilter, Pageable pageable);
+  Page<UserDto> searchUsers(SearchFilter searchFilter, Pageable pageable);
 }

@@ -51,17 +51,17 @@ public class UserServiceImpTest {
   private static final UserMapper USER_MAPPER = Mappers.getMapper(UserMapper.class);
 
   @Test
-  void search_shouldThrowPeriodNotValidException_whenMinBirthdateIsAfterMaxBirthdate() {
+  void searchUsers_shouldThrowPeriodNotValidException_whenMinBirthdateIsAfterMaxBirthdate() {
     SearchFilter searchFilter = SearchFilter.builder()
         .maxBirthdate(MIN_BIRTHDATE)
         .minBirthdate(MAX_BIRTHDATE).build();
     Pageable pageable = Pageable.unpaged();
 
-    assertThrows(PeriodNotValidException.class, () -> userService.search(searchFilter, pageable));
+    assertThrows(PeriodNotValidException.class, () -> userService.searchUsers(searchFilter, pageable));
   }
 
   @Test
-  void search_shouldReturnPageWithUsers_whenMinBirthdateAndMaxBirthdateAreNull() {
+  void searchUsers_shouldReturnPageWithUsers_whenMinBirthdateAndMaxBirthdateAreNull() {
     ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
     SearchFilter searchFilter = new SearchFilter();
     Pageable pageable = Pageable.ofSize(10);
@@ -69,14 +69,14 @@ public class UserServiceImpTest {
     Page<User> page = new PageImpl<>(List.of(user));
     when(userRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-    Page<UserDto> foundPage = userService.search(searchFilter, pageable);
+    Page<UserDto> foundPage = userService.searchUsers(searchFilter, pageable);
     UserDto foundUser = foundPage.getContent().get(0);
 
     verifyResults(user, foundUser);
   }
 
   @Test
-  void search_shouldReturnPageWithUsers_whenMinBirthdateIsBeforeMaxBirthdate() {
+  void searchUsers_shouldReturnPageWithUsers_whenMinBirthdateIsBeforeMaxBirthdate() {
     ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
     SearchFilter searchFilter = SearchFilter.builder()
         .minBirthdate(MIN_BIRTHDATE)
@@ -86,7 +86,7 @@ public class UserServiceImpTest {
     Page<User> page = new PageImpl<>(List.of(user));
     when(userRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-    Page<UserDto> foundPage = userService.search(searchFilter, pageable);
+    Page<UserDto> foundPage = userService.searchUsers(searchFilter, pageable);
     UserDto foundUser = foundPage.getContent().get(0);
 
     verifyResults(user, foundUser);

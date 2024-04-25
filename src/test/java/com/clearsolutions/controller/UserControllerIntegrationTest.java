@@ -47,7 +47,7 @@ public class UserControllerIntegrationTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void search_shouldReturnStatus200AndBody_whenRequested() throws Exception {
+  void searchUsers_shouldReturnStatus200AndBody_whenRequested() throws Exception {
     String maxBirthdate = "1970-01-01";
     String minBirthdate = "1965-01-01";
     mockMvc.perform(get(USERS_URL).accept(APPLICATION_JSON)

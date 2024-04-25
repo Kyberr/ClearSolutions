@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,7 +41,7 @@ public class UserController {
 
   /**
    * Creates a user if the data contains a first name, a last name, a birthdate, and an email.
-   * The user's age also must be greater than 18 years old and the email must be unique and have a valid format.
+   * The user's age also must be greater than 18 years old and the email must be unique having a valid format.
    *
    * @param user - user data
    * @return ResponseEntity<Void>
@@ -67,6 +66,18 @@ public class UserController {
                   }
                   """
               ))
+          ),
+          @ApiResponse(
+              responseCode = "409",
+              description = "User email is not unique",
+              content = @Content(examples = @ExampleObject("""
+                  {
+                    "timestamp": "2024-04-25T21:46:10.586265784",
+                    "errorCode": 409,
+                    "details": "User with email email@com already exists"
+                  }
+              """
+              ))
           )
       }
   )
@@ -80,9 +91,39 @@ public class UserController {
     return ResponseEntity.created(location).build();
   }
 
+  /**
+   * Searches for users by birthdate range also contains the validation which checks that “From” is less than “To”.
+   *
+   * @param searchFilter - search parameters
+   * @param pageable - page settings
+   * @return Page<UserDto>
+   */
+  @Operation(
+      summary = "Searches users",
+      operationId = "searchUser",
+      description = "Searches for users using minBirthdate and maxBirthdate parameters",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Returns a page with users"
+          ),
+          @ApiResponse(
+              responseCode = "400",
+              description = "The request parameters are not valid",
+              content = @Content(examples = @ExampleObject("""
+                  {
+                    "timestamp": "2024-04-25T21:16:45.044736999",
+                    "errorCode": 400,
+                    "details": "The value of maxBirthdate=2022-03-07 cannot be before minBirthdate=1980-03-07"
+                  }
+                  """
+              ))
+          )
+      }
+  )
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public Page<UserDto> search(@ParameterObject SearchFilter searchFilter,
-                              @ParameterObject Pageable pageable) {
-    return userService.search(searchFilter, pageable);
+  public Page<UserDto> searchUsers(@ParameterObject SearchFilter searchFilter,
+                                   @ParameterObject Pageable pageable) {
+    return userService.searchUsers(searchFilter, pageable);
   }
 }
