@@ -11,6 +11,7 @@ import com.clearsolutions.repository.entity.User;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
 import com.clearsolutions.util.TestDataGenerator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -53,7 +54,33 @@ public class UserServiceImpTest {
   @Mock
   private AppConfig appConfig;
 
-  private static final UserMapper USER_MAPPER = Mappers.getMapper(UserMapper.class);
+  @BeforeEach
+  void setUp() {
+    UserMapper userMapper = Mappers.getMapper(UserMapper.class);
+    ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, userMapper);
+  }
+
+  @Test
+  void updateUser_shouldThrowNotFoundException_whenUserIsNoInDb() {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    userDto.setId(UUID.randomUUID());
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
+
+    assertThrows(UserNotFoundException.class, () -> userService.updateUser(userDto));
+  }
+
+  @Test
+  void updateUser_shouldUpdateAndReturnUser_whenUserIsInDb() {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    User user = TestDataGenerator.generateUserEntity();
+    userDto.setId(user.getId());
+
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenReturn(user);
+
+    UserDto updatedUser = userService.updateUser(userDto);
+    verifyUserDto(user, updatedUser);
+  }
 
   @Test
   void deleteUserById_shouldThrowUserNotFoundException_whenUserIsNoInDb() {
@@ -88,7 +115,6 @@ public class UserServiceImpTest {
 
   @Test
   void searchUsers_shouldReturnPageWithAllUsers_whenSearchFilterHasNoBirthdate() {
-    ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
     SearchFilter emptySearchFilter = new SearchFilter();
     Pageable pageable = Pageable.ofSize(10);
     User user = TestDataGenerator.generateUserEntity();
@@ -104,7 +130,6 @@ public class UserServiceImpTest {
 
   @Test
   void searchUsers_shouldReturnPageWithUsers_whenBirthdayPeriodIsValid() {
-    ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
     SearchFilter filterWithValidBirthdayPeriod = buildFilterWithValidBirthdayPeriod();
     Pageable pageable = Pageable.ofSize(10);
     User user = TestDataGenerator.generateUserEntity();
@@ -126,7 +151,6 @@ public class UserServiceImpTest {
 
   @Test
   void createUser_shouldSaveAndReturnUser_whenUserDataIsValid() {
-    ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, USER_MAPPER);
     UserDto userDto = buildValidUserDto();
     User user = TestDataGenerator.generateUserEntity();
 
@@ -172,7 +196,6 @@ public class UserServiceImpTest {
     userDto.setBirthdate(validUserBirthdate);
     return userDto;
   }
-
 
   private LocalDate generateValidUserBirthdate() {
     int validUserAge = MINIMAL_AGE_IN_YEARS + ONE_YEAR;
