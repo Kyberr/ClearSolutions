@@ -25,7 +25,7 @@ import java.net.URI;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
- * REST controller for managing user data.
+ * REST controller which supports end points to manage users.
  *
  * @author Oleksandr Semenchenko
  */
@@ -92,7 +92,7 @@ public class UserController {
   }
 
   /**
-   * Searches for users by birthdate range also contains the validation which checks that “From” is less than “To”.
+   * Searches for users by birthdate range. Before the searching it checks that “From” is less than “To”.
    *
    * @param searchFilter - search parameters
    * @param pageable - page settings
