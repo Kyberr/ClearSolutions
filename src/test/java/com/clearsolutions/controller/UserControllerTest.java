@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.UUID;
 
@@ -47,6 +48,14 @@ public class UserControllerTest {
 
   @MockBean
   private UserService userService;
+
+  @Test
+  void deleteUser_shouldReturnStatus400_whenUserIdHasBadFormat() throws Exception {
+    String badFormedUserId = "776c0aed-72fa-45d8-a";
+
+    mockMvc.perform(delete(V1 + USER_URL, badFormedUserId))
+        .andExpect(status().isBadRequest());
+  }
 
   @Test
   void deleteUser_shouldReturnStatus404_whenUserNotFound() throws Exception {

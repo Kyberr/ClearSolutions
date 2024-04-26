@@ -132,6 +132,42 @@ public class UserController {
     return userService.searchUsers(searchFilter, pageable);
   }
 
+  @Operation(
+      summary = "Deletes a user",
+      operationId = "deleteUserById",
+      description = "Deletes a user by its ID if present",
+      responses = {
+          @ApiResponse(
+              responseCode = "204",
+              description = "A user was deleted successfully"
+          ),
+          @ApiResponse(
+              responseCode = "400",
+              description = "Wrong user ID format",
+              content = @Content(examples = @ExampleObject("""
+                  {
+                    "timestamp": "2024-04-26T09:31:38.392560445",
+                    "errorCode": 400,
+                    "details": "Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; 
+                    Invalid UUID string: 776c0aed-72fa-45d8-a"
+                  }
+                  """
+              ))
+          ),
+          @ApiResponse(
+              responseCode = "404",
+              description = "The user was not found in a database",
+              content = @Content(examples = @ExampleObject("""
+                  {
+                    "timestamp": "2024-04-26T09:22:53.840331928",
+                    "errorCode": 404,
+                    "details": "User with id=776c0aed-72fa-45d8-a65a-8f3ae131097f not found"
+                  }
+                  """
+              ))
+          )
+      }
+  )
   @ResponseStatus(NO_CONTENT)
   @DeleteMapping(value = "/{userId}")
   public void deleteUser(@PathVariable UUID userId) {
