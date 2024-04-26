@@ -56,7 +56,7 @@ public class UserServiceImpTest {
   private static final UserMapper USER_MAPPER = Mappers.getMapper(UserMapper.class);
 
   @Test
-  void deleteUserById_shouldThrowUserNotFoundException_whenUserInNoInDb() {
+  void deleteUserById_shouldThrowUserNotFoundException_whenUserIsNoInDb() {
     when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
     assertThrows(UserNotFoundException.class, () -> userService.deleteUserById(USER_ID));
