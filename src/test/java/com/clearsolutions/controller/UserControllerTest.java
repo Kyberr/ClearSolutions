@@ -3,6 +3,7 @@ package com.clearsolutions.controller;
 import com.clearsolutions.exceptionhandler.exceptions.EmailNotUniqueException;
 import com.clearsolutions.exceptionhandler.exceptions.PeriodNotValidException;
 import com.clearsolutions.exceptionhandler.exceptions.UserAgeViolationException;
+import com.clearsolutions.exceptionhandler.exceptions.UserNotFoundException;
 import com.clearsolutions.service.UserService;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
@@ -15,10 +16,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,8 +34,10 @@ public class UserControllerTest {
 
   private static final String V1 = "/v1";
   private static final String USERS_URL = "/users";
+  private static final String USER_URL = "/users/{userId}";
   private static final String MAX_BIRTHDATE = "1970-01-01";
   private static final String MIN_BIRTHDATE = "1965-01-01";
+  private static final UUID USER_ID = UUID.randomUUID();
 
   @Autowired
   private MockMvc mockMvc;
@@ -40,6 +47,17 @@ public class UserControllerTest {
 
   @MockBean
   private UserService userService;
+
+  @Test
+  void deleteUser_shouldReturnStatus404_whenUserNotFound() throws Exception {
+    doThrow(UserNotFoundException.class).when(userService).deleteUserById(USER_ID);
+
+    mockMvc.perform(delete(V1 + USER_URL, USER_ID))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.details").hasJsonPath())
+        .andExpect(jsonPath("$.errorCode", is(404)))
+        .andExpect(jsonPath("$.timestamp").isNotEmpty());
+  }
 
   @Test
   void searchUsers_shouldReturnStatus400_whenSearchParametersAreNotValid() throws Exception {
@@ -55,7 +73,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void createUser_shouldReturnStatus400_whenUserHasNotValidAge() throws Exception {
+  void createUser_shouldReturnStatus400_whenUserWithNotValidAge() throws Exception {
     UserDto userDto = TestDataGenerator.generateUserDto();
     String requestBody = objectMapper.writeValueAsString(userDto);
     when(userService.createUser(any(UserDto.class))).thenThrow(UserAgeViolationException.class);

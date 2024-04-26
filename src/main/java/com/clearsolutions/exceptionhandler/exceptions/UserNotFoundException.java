@@ -2,7 +2,7 @@ package com.clearsolutions.exceptionhandler.exceptions;
 
 import java.util.UUID;
 
-public class UserNotFoundException extends RuntimeException {
+public class UserNotFoundException extends NotFoundException {
 
   private static final String MESSAGE = "User with id=%s not found";
 

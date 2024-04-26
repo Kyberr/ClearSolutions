@@ -15,6 +15,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -27,7 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class UserControllerIntegrationTest {
 
-  private static final String USERS_URL = "/v1/users";
+  private static final String V1 = "/v1";
+  private static final String USERS_URL = "/users";
+  private static final String USER_URL = "/users/{userId}";
   private static final String LOCATION_HEADER_FIELD = "Location";
   private static final String EMAIL = "email@com";
   private static final String FIRST_NAME = "Linus";
@@ -43,10 +46,17 @@ public class UserControllerIntegrationTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void searchUsers_shouldReturnStatus200AndBody_whenMinBirthdateIsBeforeMaxBithdate() throws Exception {
+  void deleteUser_shouldReturnStatus204AndDeleteUser_whenUserIsInDb() throws Exception {
+    String userIdInDb = "33e1b468-f030-431e-b48c-09e6d584b51c";
+    mockMvc.perform(delete(V1 + USER_URL, userIdInDb))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void searchUsers_shouldReturnStatus200AndBody_whenBirthdayPeriodIsValid() throws Exception {
     String maxBirthdate = "1970-01-01";
     String minBirthdate = "1965-01-01";
-    mockMvc.perform(get(USERS_URL).accept(APPLICATION_JSON)
+    mockMvc.perform(get(V1 + USERS_URL).accept(APPLICATION_JSON)
         .param("minBirthdate", minBirthdate)
         .param("maxBirthdate", maxBirthdate))
         .andExpect(status().isOk())
@@ -64,7 +74,7 @@ public class UserControllerIntegrationTest {
     UserDto userDto = TestDataGenerator.generateUserDto();
     String requestBody = objectMapper.writeValueAsString(userDto);
 
-    mockMvc.perform(post(USERS_URL).contentType(APPLICATION_JSON).content(requestBody))
+    mockMvc.perform(post(V1 + USERS_URL).contentType(APPLICATION_JSON).content(requestBody))
         .andExpect(status().isCreated())
         .andExpect(header().string(LOCATION_HEADER_FIELD, containsString(USERS_URL)));
   }
