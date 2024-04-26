@@ -1,8 +1,9 @@
 package com.clearsolutions.exceptionhandler;
 
 import com.clearsolutions.exceptionhandler.exceptions.EmailNotUniqueException;
-import com.clearsolutions.exceptionhandler.exceptions.PeriodNotValidException;
+import com.clearsolutions.exceptionhandler.exceptions.NotFoundException;
 import com.clearsolutions.exceptionhandler.exceptions.RestrictionViolationException;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,18 @@ public class ServiceExceptionHandler {
   private static final String DETAILS_FIELD = "details";
   private static final String ERROR_CODE_FIELD = "errorCode";
   private static final String TIMESTAMP_FILED = "timestamp";
+
+  @ExceptionHandler(TypeMismatchException.class)
+  protected ResponseEntity<Object> handleTypeMismatchException(TypeMismatchException e) {
+    Map<String, Object> responseBody = buildErrorResponseBody(HttpStatus.BAD_REQUEST, e.getMessage());
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+  }
+
+  @ExceptionHandler(NotFoundException.class)
+  protected ResponseEntity<Object> handleNotFoundException(NotFoundException e) {
+    Map<String, Object> responseBody = buildErrorResponseBody(HttpStatus.NOT_FOUND, e.getMessage());
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
+  }
 
   @ExceptionHandler(EmailNotUniqueException.class)
   protected ResponseEntity<Object> handleEmailNotUniqueException(EmailNotUniqueException e) {

@@ -4,6 +4,7 @@ import com.clearsolutions.config.AppConfig;
 import com.clearsolutions.exceptionhandler.exceptions.EmailNotUniqueException;
 import com.clearsolutions.exceptionhandler.exceptions.PeriodNotValidException;
 import com.clearsolutions.exceptionhandler.exceptions.UserAgeViolationException;
+import com.clearsolutions.exceptionhandler.exceptions.UserNotFoundException;
 import com.clearsolutions.mapper.UserMapper;
 import com.clearsolutions.repository.UserRepository;
 import com.clearsolutions.repository.entity.User;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Objects;
+import java.util.UUID;
 
 import static java.util.Objects.nonNull;
 
@@ -74,5 +76,11 @@ public class UserServiceImp implements UserService {
       log.debug("The value of maxBirthdate=%s cannot be before minBirthdate=%s".formatted(from, to));
       throw new PeriodNotValidException(from, to);
     }
+  }
+
+  @Override
+  public void deleteUserById(UUID userId) {
+    User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+    userRepository.delete(user);
   }
 }
