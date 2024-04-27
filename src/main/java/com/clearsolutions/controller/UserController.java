@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -193,15 +194,37 @@ public class UserController {
   @Operation(
       summary = "Updates a user",
       operationId = "updateUser",
-      description = "Updates a user if their present in the database"
-  )
+      description = "Updates a user if their present in the database",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Updates user with the input data"
+          ),
+          @ApiResponse(
+              responseCode = "404",
+              description = "A user was not found in the database",
+              content = @Content(examples = @ExampleObject("""
+                  {
+                    "timestamp": "2024-04-26T09:22:53.840331928",
+                    "errorCode": 404,
+                    "details": "User with id=776c0aed-72fa-45d8-a65a-8f3ae131097f not found"
+                  }
+                  """)))
+      })
   @ResponseStatus(OK)
   @PutMapping(value = "/{userId}")
   public void updateUser(
       @Parameter(description = "a user ID", example = "4d57987f-600b-4b88-8294-70b9cefb0a98")
       @PathVariable UUID userId,
-      @RequestBody UserDto user) {
+      @RequestBody @Validated UserDto user) {
     user.setId(userId);
     userService.updateUser(user);
   }
+
+  @ResponseStatus(OK)
+  @PatchMapping(value = "/{userId}")
+  public void updateUserPartially(@PathVariable UUID userId, @RequestBody UserDto user) {
+    user.setId(userId);
+    userService.updateUserPartially(user);
+  };
 }

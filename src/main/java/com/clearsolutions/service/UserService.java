@@ -16,4 +16,6 @@ public interface UserService {
   void deleteUserById(UUID userId);
 
   UserDto updateUser(UserDto user);
+
+  UserDto updateUserPartially(UserDto user);
 }

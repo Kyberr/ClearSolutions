@@ -10,7 +10,7 @@ import com.clearsolutions.repository.UserRepository;
 import com.clearsolutions.repository.entity.User;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
-import com.clearsolutions.util.TestDataGenerator;
+import com.clearsolutions.TestDataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +58,26 @@ public class UserServiceImpTest {
   void setUp() {
     UserMapper userMapper = Mappers.getMapper(UserMapper.class);
     ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, userMapper);
+  }
+
+  @Test
+  void updateUserPartially_shouldUpdateUser_whenUserIsInDb() {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    userDto.setId(USER_ID);
+    User user = TestDataGenerator.generateUserEntity();
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenReturn(user);
+    UserDto updatedUser = userService.updateUserPartially(userDto);
+
+    verifyUserDto(user, updatedUser);
+  }
+
+  @Test
+  void updateUserPartially_shouldThrowUserNotFoundException_whenUserIsNotInDb() {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    userDto.setId(USER_ID);
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
+    assertThrows(UserNotFoundException.class, () -> userService.updateUserPartially(userDto));
   }
 
   @Test

@@ -1,7 +1,7 @@
 package com.clearsolutions.controller;
 
 import com.clearsolutions.service.dto.UserDto;
-import com.clearsolutions.util.TestDataGenerator;
+import com.clearsolutions.TestDataGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -48,6 +49,16 @@ public class UserControllerIntegrationTest {
 
   @Autowired
   private ObjectMapper objectMapper;
+
+  @Test
+  void updateUserPartially_shouldReturnStatus200_whenUserIsInDb() throws Exception {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    String requestBody = objectMapper.writeValueAsString(userDto);
+
+    mockMvc.perform(patch(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON)
+          .content(requestBody))
+        .andExpect(status().isOk());
+  }
 
   @Test
   void updateUser_shouldReturnStatus200_whenUserIsInDb() throws Exception {

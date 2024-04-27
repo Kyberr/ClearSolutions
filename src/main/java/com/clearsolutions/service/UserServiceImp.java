@@ -17,10 +17,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.Objects;
 import java.util.UUID;
 
 import static java.util.Objects.nonNull;
@@ -35,6 +35,17 @@ public class UserServiceImp implements UserService {
   private final UserMapper userMapper;
 
   @Override
+  @Transactional
+  public UserDto updateUserPartially(UserDto userDto) {
+    User user = userRepository.findById(userDto.getId())
+        .orElseThrow(() -> new UserNotFoundException(userDto.getId()));
+    User updatedUser = userMapper.updateEntityByNotNullValues(userDto, user);
+    User savedUser = userRepository.save(updatedUser);
+    return userMapper.toDto(savedUser);
+  }
+
+  @Override
+  @Transactional
   public UserDto updateUser(UserDto userDto) {
     User user = userRepository.findById(userDto.getId())
         .orElseThrow(() -> new UserNotFoundException(userDto.getId()));
@@ -44,6 +55,7 @@ public class UserServiceImp implements UserService {
   }
 
   @Override
+  @Transactional
   public UserDto createUser(UserDto userDto) {
     verifyUserAge(userDto.getBirthdate());
     verifyIfEmailUnique(userDto.getEmail());
@@ -88,6 +100,7 @@ public class UserServiceImp implements UserService {
   }
 
   @Override
+  @Transactional
   public void deleteUserById(UUID userId) {
     User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
     userRepository.delete(user);

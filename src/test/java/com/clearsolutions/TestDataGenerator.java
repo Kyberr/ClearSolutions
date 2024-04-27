@@ -1,4 +1,4 @@
-package com.clearsolutions.util;
+package com.clearsolutions;
 
 import com.clearsolutions.repository.entity.User;
 import com.clearsolutions.service.dto.UserDto;
