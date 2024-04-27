@@ -252,6 +252,16 @@ public class UserController {
               description = "Updates partially a user"
           ),
           @ApiResponse(
+              responseCode = "400",
+              description = "User data is not valid",
+              content = @Content(examples = @ExampleObject("""
+                  {
+                    "timestamp": "2024-04-25T14:10:54.715989458",
+                    "errorCode": 400,
+                    "details": "The user's age must be over 18 years old"
+                  }
+                  """))),
+          @ApiResponse(
               responseCode = "404",
               description = "A user not found",
               content = @Content(examples = @ExampleObject("""
@@ -260,7 +270,17 @@ public class UserController {
                     "errorCode": 404,
                     "details": "User with id=776c0aed-72fa-45d8-a65a-8f3ae131097f not found"
                   }
-                  """)))
+                  """))),
+          @ApiResponse(
+              responseCode = "409",
+              description = "User email is not unique",
+              content = @Content(examples = @ExampleObject("""
+                  {
+                    "timestamp": "2024-04-25T21:46:10.586265784",
+                    "errorCode": 409,
+                    "details": "User with email email@com already exists"
+                  }
+              """)))
       })
   @ResponseStatus(OK)
   @PatchMapping(value = "/{userId}")

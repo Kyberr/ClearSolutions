@@ -10,6 +10,7 @@ import com.clearsolutions.service.specification.SearchFilter;
 import com.clearsolutions.TestDataGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -53,10 +54,27 @@ public class UserControllerTest {
   @MockBean
   private UserService userService;
 
+  private String requestBody;
+
+  @BeforeEach
+  void setUp() throws JsonProcessingException {
+    UserDto user = TestDataGenerator.generateUserDto();
+    requestBody = objectMapper.writeValueAsString(user);
+  }
+
   @Test
-  void updateUserPartially_shouldReturn404_whenUserIsNotInDb() throws Exception {
-    UserDto userDto = TestDataGenerator.generateUserDto();
-    String requestBody = objectMapper.writeValueAsString(userDto);
+  void updateUserPartially_shouldReturnStatus409_whenUserEmailIsNotUnique() throws Exception {
+    when(userService.updateUserPartially(any(UserDto.class))).thenThrow(EmailNotUniqueException.class);
+
+    mockMvc.perform(patch(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON).content(requestBody))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.details").hasJsonPath())
+        .andExpect(jsonPath("$.errorCode", is(409)))
+        .andExpect(jsonPath("$.timestamp").isNotEmpty());
+  }
+
+  @Test
+  void updateUserPartially_shouldReturnStatus404_whenUserIsNotInDb() throws Exception {
     when(userService.updateUserPartially(any(UserDto.class))).thenThrow(UserNotFoundException.class);
 
     mockMvc.perform(patch(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON)
@@ -65,9 +83,16 @@ public class UserControllerTest {
   }
 
   @Test
+  void updateUserPartially_shouldReturnStatus400_whenUserAgeIsNotValid() throws Exception {
+    when(userService.updateUserPartially(any(UserDto.class))).thenThrow(UserAgeViolationException.class);
+
+    mockMvc.perform(patch(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void updateUser_shouldReturnStatus404_whenUserIsNotInDb() throws Exception {
-    UserDto user = TestDataGenerator.generateUserDto();
-    String requestBody = objectMapper.writeValueAsString(user);
     when(userService.updateUser(any(UserDto.class))).thenThrow(UserNotFoundException.class);
 
     mockMvc.perform(put(V1 + USER_URL, NOT_EXISTING_USER_ID).contentType(APPLICATION_JSON)
@@ -80,8 +105,6 @@ public class UserControllerTest {
 
   @Test
   void updateUser_shouldReturnStatus409_whenUserEmailIsNotUnique() throws Exception {
-    UserDto userDto = TestDataGenerator.generateUserDto();
-    String requestBody = objectMapper.writeValueAsString(userDto);
     when(userService.updateUser(any(UserDto.class))).thenThrow(EmailNotUniqueException.class);
 
     mockMvc.perform(put(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON)
@@ -94,8 +117,6 @@ public class UserControllerTest {
 
   @Test
   void updateUser_shouldReturnStatus400_whenUserAgeIsNotValid() throws Exception {
-    UserDto userDto = TestDataGenerator.generateUserDto();
-    String requestBody = objectMapper.writeValueAsString(userDto);
     when(userService.updateUser(any(UserDto.class))).thenThrow(UserAgeViolationException.class);
 
     mockMvc.perform(put(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON)
@@ -157,8 +178,6 @@ public class UserControllerTest {
 
   @Test
   void createUser_shouldReturnStatus400_whenUserWithNotValidAge() throws Exception {
-    UserDto userDto = TestDataGenerator.generateUserDto();
-    String requestBody = objectMapper.writeValueAsString(userDto);
     when(userService.createUser(any(UserDto.class))).thenThrow(UserAgeViolationException.class);
 
     mockMvc.perform(post(V1 + USERS_URL).contentType(APPLICATION_JSON).content(requestBody))
@@ -170,8 +189,6 @@ public class UserControllerTest {
 
   @Test
   void createUser_shouldReturnStatus409_whenEmailIsNotUnique() throws Exception {
-    UserDto userDto = TestDataGenerator.generateUserDto();
-    String requestBody = objectMapper.writeValueAsString(userDto);
     when(userService.createUser(any(UserDto.class))).thenThrow(EmailNotUniqueException.class);
 
     mockMvc.perform(post(V1 + USERS_URL).contentType(APPLICATION_JSON).content(requestBody))
