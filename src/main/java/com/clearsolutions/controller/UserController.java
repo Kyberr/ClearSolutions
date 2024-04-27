@@ -249,7 +249,10 @@ public class UserController {
       })
   @ResponseStatus(OK)
   @PatchMapping(value = "/{userId}")
-  public void updateUserPartially(@PathVariable UUID userId, @RequestBody UserDto user) {
+  public void updateUserPartially(
+      @Parameter(description = "a user ID", example = "4d57987f-600b-4b88-8294-70b9cefb0a98")
+      @PathVariable UUID userId,
+      @RequestBody UserDto user) {
     user.setId(userId);
     userService.updateUserPartially(user);
   }

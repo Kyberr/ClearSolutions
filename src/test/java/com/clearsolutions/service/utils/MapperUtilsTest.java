@@ -12,7 +12,7 @@ public class MapperUtilsTest {
   private static final String PROPERTY_NAME = "id";
 
   @Test
-  void definePropertiesWithNullValues_shouldReturnPropertyNames_whenPropertyIsNull() {
+  void definePropertiesWithNullValues_shouldReturnPropertyNames_whenPropertiesAreNull() {
     UserDto user = TestDataGenerator.generateUserDto();
     String[] properties = MapperUtils.definePropertiesWithNullValues(user);
 
