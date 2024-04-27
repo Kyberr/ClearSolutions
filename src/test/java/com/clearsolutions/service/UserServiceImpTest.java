@@ -61,7 +61,7 @@ public class UserServiceImpTest {
   }
 
   @Test
-  void updateUser_shouldThrowNotFoundException_whenUserIsNoInDb() {
+  void updateUser_shouldThrowNotFoundException_whenUserIsNotInDb() {
     UserDto userDto = TestDataGenerator.generateUserDto();
     userDto.setId(UUID.randomUUID());
     when(userRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
@@ -83,7 +83,7 @@ public class UserServiceImpTest {
   }
 
   @Test
-  void deleteUserById_shouldThrowUserNotFoundException_whenUserIsNoInDb() {
+  void deleteUserById_shouldThrowUserNotFoundException_whenUserIsNotInDb() {
     when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
     assertThrows(UserNotFoundException.class, () -> userService.deleteUserById(USER_ID));

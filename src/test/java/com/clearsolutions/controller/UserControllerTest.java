@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
@@ -24,7 +23,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -52,7 +50,7 @@ public class UserControllerTest {
   private UserService userService;
 
   @Test
-  void updateUser_shouldReturnStatus404_whenUserNotFound() throws Exception {
+  void updateUser_shouldReturnStatus404_whenUserIsNotInDb() throws Exception {
     UserDto user = TestDataGenerator.generateUserDto();
     String requestBody = objectMapper.writeValueAsString(user);
     when(userService.updateUser(any(UserDto.class))).thenThrow(UserNotFoundException.class);
@@ -74,7 +72,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void deleteUser_shouldReturnStatus404_whenUserNotFound() throws Exception {
+  void deleteUser_shouldReturnStatus404_whenUserIsNotInDb() throws Exception {
     doThrow(UserNotFoundException.class).when(userService).deleteUserById(NOT_EXISTING_USER_ID);
 
     mockMvc.perform(delete(V1 + USER_URL, NOT_EXISTING_USER_ID))
@@ -124,7 +122,7 @@ public class UserControllerTest {
   }
 
   @Test
-  void createUser_shouldReturnStatus400_whenRequestBodyHasBadFormat() throws Exception {
+  void createUser_shouldReturnStatus400_whenRequestBodyHasNotValidFields() throws Exception {
     String notValidEmail = "addfd";
     UserDto userDto = UserDto.builder().email(notValidEmail).build();
     String requestBody = objectMapper.writeValueAsString(userDto);
