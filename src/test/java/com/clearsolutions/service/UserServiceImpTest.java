@@ -73,6 +73,27 @@ public class UserServiceImpTest {
   }
 
   @Test
+  void updateUserPartially_shouldThrowEmailNotUniqueException_whenProvidedEmailIsNotUnique() {
+    UserDto userDto = buildUserDtoWithValidBirthdate();
+    userDto.setId(USER_ID);
+    User user = TestDataGenerator.generateUserEntity();
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+    when(userRepository.existsByEmail(any(String.class))).thenReturn(true);
+
+    assertThrows(EmailNotUniqueException.class, () -> userService.updateUserPartially(userDto));
+  }
+
+  @Test
+  void updateUserPartially_shouldThrowUserAgeViolationException_whenUserAgeIsNotValid() {
+    UserDto userDto = buildUserDtoWithNotValidBirthday();
+    userDto.setId(USER_ID);
+    User user = TestDataGenerator.generateUserEntity();
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+
+    assertThrows(UserAgeViolationException.class, () -> userService.updateUserPartially(userDto));
+  }
+
+  @Test
   void updateUserPartially_shouldThrowUserNotFoundException_whenUserIsNotInDb() {
     UserDto userDto = TestDataGenerator.generateUserDto();
     userDto.setId(USER_ID);
@@ -171,7 +192,7 @@ public class UserServiceImpTest {
 
   @Test
   void createUser_shouldSaveAndReturnUser_whenUserDataIsValid() {
-    UserDto userDto = buildValidUserDto();
+    UserDto userDto = buildUserDtoWithValidBirthdate();
     User user = TestDataGenerator.generateUserEntity();
 
     when(appConfig.getMinimalAgeInYears()).thenReturn(MINIMAL_AGE_IN_YEARS);
@@ -181,13 +202,6 @@ public class UserServiceImpTest {
     UserDto savedUser = userService.createUser(userDto);
 
     verifyUserDto(user, savedUser);
-  }
-
-  private UserDto buildValidUserDto() {
-    UserDto userDto = TestDataGenerator.generateUserDto();
-    LocalDate validUserBirthdate = generateValidUserBirthdate();
-    userDto.setBirthdate(validUserBirthdate);
-    return userDto;
   }
 
   private void verifyUserDto(User expectedUser, UserDto actualUser) {
@@ -202,7 +216,7 @@ public class UserServiceImpTest {
 
   @Test
   void createUser_shouldThrowEmailNotUniqueException_whenSuchEmailIsAlreadyInDb() {
-    UserDto userWithNotUniqueEmail = buildUserDtoWithNotUniqueEmail();
+    UserDto userWithNotUniqueEmail = buildUserDtoWithValidBirthdate();
 
     when(appConfig.getMinimalAgeInYears()).thenReturn(MINIMAL_AGE_IN_YEARS);
     when(userRepository.existsByEmail(userWithNotUniqueEmail.getEmail())).thenReturn(true);
@@ -210,7 +224,7 @@ public class UserServiceImpTest {
     assertThrows(EmailNotUniqueException.class, () -> userService.createUser(userWithNotUniqueEmail));
   }
 
-  private UserDto buildUserDtoWithNotUniqueEmail() {
+  private UserDto buildUserDtoWithValidBirthdate() {
     UserDto userDto = TestDataGenerator.generateUserDto();
     LocalDate validUserBirthdate = generateValidUserBirthdate();
     userDto.setBirthdate(validUserBirthdate);

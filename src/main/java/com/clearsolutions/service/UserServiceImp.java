@@ -51,13 +51,22 @@ public class UserServiceImp implements UserService {
   public UserDto updateUserPartially(UserDto userDto) {
     User user = userRepository.findById(userDto.getId())
         .orElseThrow(() -> new UserNotFoundException(userDto.getId()));
+
+    if (nonNull(userDto.getBirthdate())) {
+      verifyUserAge(userDto.getBirthdate());
+    }
+
+    if (nonNull(userDto.getEmail())) {
+      verifyIfEmailUnique(userDto.getEmail());
+    }
     User updatedUser = userMapper.updateEntityByNotNullValues(userDto, user);
     User savedUser = userRepository.save(updatedUser);
     return userMapper.toDto(savedUser);
   }
 
   /**
-   * Updates a user data by provided data.
+   * Updates user data by provided data. The email must be unique
+   * and the user's age be greater than the value specified in the configuration file confing.properties.
    *
    * @param userDto - user data
    * @return UserDto
@@ -67,6 +76,8 @@ public class UserServiceImp implements UserService {
   public UserDto updateUser(UserDto userDto) {
     User user = userRepository.findById(userDto.getId())
         .orElseThrow(() -> new UserNotFoundException(userDto.getId()));
+    verifyUserAge(userDto.getBirthdate());
+    verifyIfEmailUnique(userDto.getEmail());
     User updatedUser = userMapper.mergeWithDto(userDto, user);
     User savedUser = userRepository.save(updatedUser);
     return userMapper.toDto(savedUser);

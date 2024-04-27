@@ -65,6 +65,48 @@ public class UserControllerTest {
   }
 
   @Test
+  void updateUser_shouldReturnStatus404_whenUserIsNotInDb() throws Exception {
+    UserDto user = TestDataGenerator.generateUserDto();
+    String requestBody = objectMapper.writeValueAsString(user);
+    when(userService.updateUser(any(UserDto.class))).thenThrow(UserNotFoundException.class);
+
+    mockMvc.perform(put(V1 + USER_URL, NOT_EXISTING_USER_ID).contentType(APPLICATION_JSON)
+          .content(requestBody))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.details").hasJsonPath())
+        .andExpect(jsonPath("$.errorCode", is(404)))
+        .andExpect(jsonPath("$.timestamp").isNotEmpty());
+  }
+
+  @Test
+  void updateUser_shouldReturnStatus409_whenUserEmailIsNotUnique() throws Exception {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    String requestBody = objectMapper.writeValueAsString(userDto);
+    when(userService.updateUser(any(UserDto.class))).thenThrow(EmailNotUniqueException.class);
+
+    mockMvc.perform(put(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.details").hasJsonPath())
+        .andExpect(jsonPath("$.errorCode", is(409)))
+        .andExpect(jsonPath("$.timestamp").isNotEmpty());
+  }
+
+  @Test
+  void updateUser_shouldReturnStatus400_whenUserAgeIsNotValid() throws Exception {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    String requestBody = objectMapper.writeValueAsString(userDto);
+    when(userService.updateUser(any(UserDto.class))).thenThrow(UserAgeViolationException.class);
+
+    mockMvc.perform(put(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.details").hasJsonPath())
+        .andExpect(jsonPath("$.errorCode", is(400)))
+        .andExpect(jsonPath("$.timestamp").isNotEmpty());
+  }
+
+  @Test
   void updateUser_shouldReturnStatus400_whenRequestBodyHasNotValidFields() throws Exception {
     String notValidEmail = "addfd";
     UserDto userDto = UserDto.builder().email(notValidEmail).build();
@@ -78,20 +120,6 @@ public class UserControllerTest {
         .andExpect(jsonPath("$.details.firstName").isNotEmpty())
         .andExpect(jsonPath("$.details.birthdate").isNotEmpty())
         .andExpect(jsonPath("$.errorCode", is(400)))
-        .andExpect(jsonPath("$.timestamp").isNotEmpty());
-  }
-
-  @Test
-  void updateUser_shouldReturnStatus404_whenUserIsNotInDb() throws Exception {
-    UserDto user = TestDataGenerator.generateUserDto();
-    String requestBody = objectMapper.writeValueAsString(user);
-    when(userService.updateUser(any(UserDto.class))).thenThrow(UserNotFoundException.class);
-
-    mockMvc.perform(put(V1 + USER_URL, NOT_EXISTING_USER_ID).contentType(APPLICATION_JSON)
-          .content(requestBody))
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.details").hasJsonPath())
-        .andExpect(jsonPath("$.errorCode", is(404)))
         .andExpect(jsonPath("$.timestamp").isNotEmpty());
   }
 

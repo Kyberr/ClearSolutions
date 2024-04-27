@@ -1,5 +1,6 @@
 package com.clearsolutions.controller;
 
+import com.clearsolutions.config.AppConfig;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.TestDataGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -43,6 +46,7 @@ public class UserControllerIntegrationTest {
   private static final String ADDRESS = "some address";
   private static final String PHONE_NUMBER = "+38(097)-100-00-00";
   private static final String USER_ID = "92f226ce-f1a0-4514-9466-e811648a5218";
+  private static final int ONE_YEAR = 1;
 
   @Autowired
   private MockMvc mockMvc;
@@ -50,9 +54,12 @@ public class UserControllerIntegrationTest {
   @Autowired
   private ObjectMapper objectMapper;
 
+  @Autowired
+  private AppConfig appConfig;
+
   @Test
   void updateUserPartially_shouldReturnStatus200_whenUserIsInDb() throws Exception {
-    UserDto userDto = TestDataGenerator.generateUserDto();
+    UserDto userDto = buildUserDtoWithValidBirthdate();
     String requestBody = objectMapper.writeValueAsString(userDto);
 
     mockMvc.perform(patch(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON)
@@ -62,7 +69,7 @@ public class UserControllerIntegrationTest {
 
   @Test
   void updateUser_shouldReturnStatus200_whenUserIsInDb() throws Exception {
-    UserDto userDto = TestDataGenerator.generateUserDto();
+    UserDto userDto = buildUserDtoWithValidBirthdate();
     String requestBody = objectMapper.writeValueAsString(userDto);
 
     mockMvc.perform(put(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON).content(requestBody))
@@ -95,11 +102,23 @@ public class UserControllerIntegrationTest {
 
   @Test
   void createUser_shouldReturnStatus201_whenRequested() throws Exception {
-    UserDto userDto = TestDataGenerator.generateUserDto();
+    UserDto userDto = buildUserDtoWithValidBirthdate();
     String requestBody = objectMapper.writeValueAsString(userDto);
 
     mockMvc.perform(post(V1 + USERS_URL).contentType(APPLICATION_JSON).content(requestBody))
         .andExpect(status().isCreated())
         .andExpect(header().string(LOCATION_HEADER_FIELD, containsString(USERS_URL)));
+  }
+
+  private UserDto buildUserDtoWithValidBirthdate() {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    LocalDate validUserBirthdate = generateValidUserBirthdate();
+    userDto.setBirthdate(validUserBirthdate);
+    return userDto;
+  }
+
+  private LocalDate generateValidUserBirthdate() {
+    int validUserAge = appConfig.getMinimalAgeInYears() + ONE_YEAR;
+    return LocalDate.now().minusYears(validUserAge);
   }
 }

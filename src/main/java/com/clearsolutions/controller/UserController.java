@@ -81,8 +81,7 @@ public class UserController {
                     "errorCode": 400,
                     "details": "The user's age must be over 18 years old"
                   }
-                  """
-              ))),
+                  """))),
           @ApiResponse(
               responseCode = "409",
               description = "User email is not unique",
@@ -92,8 +91,7 @@ public class UserController {
                     "errorCode": 409,
                     "details": "User with email email@com already exists"
                   }
-              """
-              )))
+              """)))
       })
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> createUser(@RequestBody @Validated UserDto user) {
@@ -130,8 +128,7 @@ public class UserController {
                     "errorCode": 400,
                     "details": "The value of maxBirthdate=2022-03-07 cannot be before minBirthdate=1980-03-07"
                   }
-                  """
-              )))
+                  """)))
       })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public Page<UserDto> searchUsers(@ParameterObject SearchFilter searchFilter,
@@ -163,8 +160,7 @@ public class UserController {
                     "details": "Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; 
                     Invalid UUID string: 776c0aed-72fa-45d8-a"
                   }
-                  """
-              ))),
+                  """))),
           @ApiResponse(
               responseCode = "404",
               description = "The user was not found in a database",
@@ -174,8 +170,7 @@ public class UserController {
                     "errorCode": 404,
                     "details": "User with id=776c0aed-72fa-45d8-a65a-8f3ae131097f not found"
                   }
-                  """
-              )))
+                  """)))
       })
   @ResponseStatus(NO_CONTENT)
   @DeleteMapping(value = "/{userId}")
@@ -201,6 +196,16 @@ public class UserController {
               description = "Updates user with the provided data"
           ),
           @ApiResponse(
+              responseCode = "400",
+              description = "User data is not valid",
+              content = @Content(examples = @ExampleObject("""
+                  {
+                    "timestamp": "2024-04-25T14:10:54.715989458",
+                    "errorCode": 400,
+                    "details": "The user's age must be over 18 years old"
+                  }
+                  """))),
+          @ApiResponse(
               responseCode = "404",
               description = "A user was not found in the database",
               content = @Content(examples = @ExampleObject("""
@@ -209,7 +214,17 @@ public class UserController {
                     "errorCode": 404,
                     "details": "User with id=776c0aed-72fa-45d8-a65a-8f3ae131097f not found"
                   }
-                  """)))
+                  """))),
+          @ApiResponse(
+              responseCode = "409",
+              description = "User email is not unique",
+              content = @Content(examples = @ExampleObject("""
+                  {
+                    "timestamp": "2024-04-25T21:46:10.586265784",
+                    "errorCode": 409,
+                    "details": "User with email email@com already exists"
+                  }
+              """)))
       })
   @ResponseStatus(OK)
   @PutMapping(value = "/{userId}")
