@@ -35,6 +35,15 @@ public class UserServiceImp implements UserService {
   private final UserMapper userMapper;
 
   @Override
+  public UserDto updateUser(UserDto userDto) {
+    User user = userRepository.findById(userDto.getId())
+        .orElseThrow(() -> new UserNotFoundException(userDto.getId()));
+    User updatedUser = userMapper.mergeWithDto(userDto, user);
+    User savedUser = userRepository.save(updatedUser);
+    return userMapper.toDto(savedUser);
+  }
+
+  @Override
   public UserDto createUser(UserDto userDto) {
     verifyUserAge(userDto.getBirthdate());
     verifyIfEmailUnique(userDto.getEmail());

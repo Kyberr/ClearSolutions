@@ -11,12 +11,14 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -27,6 +29,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
@@ -70,8 +73,7 @@ public class UserController {
                     "details": "The user's age must be over 18 years old"
                   }
                   """
-              ))
-          ),
+              ))),
           @ApiResponse(
               responseCode = "409",
               description = "User email is not unique",
@@ -82,12 +84,10 @@ public class UserController {
                     "details": "User with email email@com already exists"
                   }
               """
-              ))
-          )
-      }
-  )
+              )))
+      })
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Void> createUser(@RequestBody @Validated  UserDto user) {
+  public ResponseEntity<Void> createUser(@RequestBody @Validated UserDto user) {
     UserDto createdUser = userService.createUser(user);
     URI location = ServletUriComponentsBuilder.fromCurrentServletMapping()
         .path(V1 + USER_URL)
@@ -122,10 +122,8 @@ public class UserController {
                     "details": "The value of maxBirthdate=2022-03-07 cannot be before minBirthdate=1980-03-07"
                   }
                   """
-              ))
-          )
-      }
-  )
+              )))
+      })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public Page<UserDto> searchUsers(@ParameterObject SearchFilter searchFilter,
                                    @ParameterObject Pageable pageable) {
@@ -152,8 +150,7 @@ public class UserController {
                     Invalid UUID string: 776c0aed-72fa-45d8-a"
                   }
                   """
-              ))
-          ),
+              ))),
           @ApiResponse(
               responseCode = "404",
               description = "The user was not found in a database",
@@ -164,13 +161,18 @@ public class UserController {
                     "details": "User with id=776c0aed-72fa-45d8-a65a-8f3ae131097f not found"
                   }
                   """
-              ))
-          )
-      }
-  )
+              )))
+      })
   @ResponseStatus(NO_CONTENT)
   @DeleteMapping(value = "/{userId}")
   public void deleteUser(@PathVariable UUID userId) {
     userService.deleteUserById(userId);
+  }
+
+  @ResponseStatus(OK)
+  @PutMapping(value = "/{userId}")
+  public void updateUser(@PathVariable UUID userId, @RequestBody UserDto user) {
+    user.setId(userId);
+    userService.updateUser(user);
   }
 }

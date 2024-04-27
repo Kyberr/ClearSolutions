@@ -14,4 +14,6 @@ public interface UserService {
   Page<UserDto> searchUsers(SearchFilter searchFilter, Pageable pageable);
 
   void deleteUserById(UUID userId);
+
+  UserDto updateUser(UserDto user);
 }

@@ -2,11 +2,13 @@ package com.clearsolutions.controller;
 
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.util.TestDataGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,12 +41,22 @@ public class UserControllerIntegrationTest {
   private static final String BIRTHDATE = "1969-12-28";
   private static final String ADDRESS = "some address";
   private static final String PHONE_NUMBER = "+38(097)-100-00-00";
+  private static final String USER_ID = "92f226ce-f1a0-4514-9466-e811648a5218";
 
   @Autowired
   private MockMvc mockMvc;
 
   @Autowired
   private ObjectMapper objectMapper;
+
+  @Test
+  void updateUser_shouldReturnStatus200_whenUserIsInDb() throws Exception {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    String requestBody = objectMapper.writeValueAsString(userDto);
+
+    mockMvc.perform(put(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON).content(requestBody))
+        .andExpect(status().isOk());
+  }
 
   @Test
   void deleteUser_shouldReturnStatus204AndDeleteUser_whenUserIsInDb() throws Exception {
