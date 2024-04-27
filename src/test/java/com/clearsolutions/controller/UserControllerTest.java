@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
@@ -23,9 +24,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,7 +40,7 @@ public class UserControllerTest {
   private static final String USER_URL = "/users/{userId}";
   private static final String MAX_BIRTHDATE = "1970-01-01";
   private static final String MIN_BIRTHDATE = "1965-01-01";
-  private static final UUID USER_ID = UUID.randomUUID();
+  private static final UUID NOT_EXISTING_USER_ID = UUID.randomUUID();
 
   @Autowired
   private MockMvc mockMvc;
@@ -49,6 +52,20 @@ public class UserControllerTest {
   private UserService userService;
 
   @Test
+  void updateUser_shouldReturnStatus404_whenUserNotFound() throws Exception {
+    UserDto user = TestDataGenerator.generateUserDto();
+    String requestBody = objectMapper.writeValueAsString(user);
+    when(userService.updateUser(any(UserDto.class))).thenThrow(UserNotFoundException.class);
+
+    mockMvc.perform(put(V1 + USER_URL, NOT_EXISTING_USER_ID).contentType(APPLICATION_JSON)
+          .content(requestBody))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.details").hasJsonPath())
+        .andExpect(jsonPath("$.errorCode", is(404)))
+        .andExpect(jsonPath("$.timestamp").isNotEmpty());
+  }
+
+  @Test
   void deleteUser_shouldReturnStatus400_whenUserIdHasBadFormat() throws Exception {
     String badFormedUserId = "776c0aed-72fa-45d8-a";
 
@@ -58,9 +75,9 @@ public class UserControllerTest {
 
   @Test
   void deleteUser_shouldReturnStatus404_whenUserNotFound() throws Exception {
-    doThrow(UserNotFoundException.class).when(userService).deleteUserById(USER_ID);
+    doThrow(UserNotFoundException.class).when(userService).deleteUserById(NOT_EXISTING_USER_ID);
 
-    mockMvc.perform(delete(V1 + USER_URL, USER_ID))
+    mockMvc.perform(delete(V1 + USER_URL, NOT_EXISTING_USER_ID))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.details").hasJsonPath())
         .andExpect(jsonPath("$.errorCode", is(404)))
