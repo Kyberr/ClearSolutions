@@ -198,7 +198,7 @@ public class UserController {
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "Updates user with the input data"
+              description = "Updates user with the provided data"
           ),
           @ApiResponse(
               responseCode = "404",
@@ -221,10 +221,36 @@ public class UserController {
     userService.updateUser(user);
   }
 
+  /**
+   * Updates only user's fields that are not null in an input object.
+   *
+   * @param userId - a user ID
+   * @param user - user data
+   */
+  @Operation(
+      summary = "Updates partially a user",
+      operationId = "updateUserPartially",
+      description = "Updates only user's fields that are not null in an input object.",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Updates partially a user"
+          ),
+          @ApiResponse(
+              responseCode = "404",
+              description = "A user not found",
+              content = @Content(examples = @ExampleObject("""
+                   {
+                    "timestamp": "2024-04-26T09:22:53.840331928",
+                    "errorCode": 404,
+                    "details": "User with id=776c0aed-72fa-45d8-a65a-8f3ae131097f not found"
+                  }
+                  """)))
+      })
   @ResponseStatus(OK)
   @PatchMapping(value = "/{userId}")
   public void updateUserPartially(@PathVariable UUID userId, @RequestBody UserDto user) {
     user.setId(userId);
     userService.updateUserPartially(user);
-  };
+  }
 }
