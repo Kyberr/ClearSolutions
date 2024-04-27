@@ -3,15 +3,18 @@ package com.clearsolutions.controller;
 import com.clearsolutions.service.UserService;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.servers.Server;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,6 +40,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  *
  * @author Oleksandr Semenchenko
  */
+@OpenAPIDefinition(info = @Info(
+    title = "Users service API",
+    version = "${build.version}",
+    description = "The API to manage users"),
+    servers = @Server(url = "http://localhost:${server.port}", description = "Development server"))
 @RestController
 @RequestMapping("/v1/users")
 @RequiredArgsConstructor
@@ -48,7 +56,7 @@ public class UserController {
   private final UserService userService;
 
   /**
-   * Creates a user if the data contains a first name, a last name, a birthdate, and an email.
+   * Creates a user if the data contains a first name, a last name, a birthdate and an email.
    * The user's age also must be greater than 18 years old and the email must be unique having a valid format.
    *
    * @param user - user data
@@ -130,10 +138,15 @@ public class UserController {
     return userService.searchUsers(searchFilter, pageable);
   }
 
+  /**
+   * Deletes a user if their present in the database.
+   *
+   * @param userId - a user ID
+   */
   @Operation(
       summary = "Deletes a user",
       operationId = "deleteUserById",
-      description = "Deletes a user by its ID if present",
+      description = "Deletes a user if their present in the database",
       responses = {
           @ApiResponse(
               responseCode = "204",
@@ -165,13 +178,29 @@ public class UserController {
       })
   @ResponseStatus(NO_CONTENT)
   @DeleteMapping(value = "/{userId}")
-  public void deleteUser(@PathVariable UUID userId) {
+  public void deleteUser(
+      @Parameter(description = "a user ID", example = "4d57987f-600b-4b88-8294-70b9cefb0a98")
+      @PathVariable UUID userId) {
     userService.deleteUserById(userId);
   }
 
+  /**
+   * Updates user data with the provided data.
+   *
+   * @param userId - a user ID
+   * @param user - user data
+   */
+  @Operation(
+      summary = "Updates a user",
+      operationId = "updateUser",
+      description = "Updates a user if their present in the database"
+  )
   @ResponseStatus(OK)
   @PutMapping(value = "/{userId}")
-  public void updateUser(@PathVariable UUID userId, @RequestBody UserDto user) {
+  public void updateUser(
+      @Parameter(description = "a user ID", example = "4d57987f-600b-4b88-8294-70b9cefb0a98")
+      @PathVariable UUID userId,
+      @RequestBody UserDto user) {
     user.setId(userId);
     userService.updateUser(user);
   }

@@ -1,5 +1,7 @@
 server:
   port: 8081
+build:
+  version: "${project.version}"
 spring:
   jpa:
     database-platform: "org.hibernate.dialect.H2Dialect"
