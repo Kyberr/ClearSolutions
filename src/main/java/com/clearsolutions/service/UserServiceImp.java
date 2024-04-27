@@ -25,6 +25,11 @@ import java.util.UUID;
 
 import static java.util.Objects.nonNull;
 
+/**
+ * The service class for the user entity.
+ *
+ * @author Oleksandr Semenchenko
+ */
 @Service
 @RequiredArgsConstructor
 @Log4j2
@@ -34,6 +39,13 @@ public class UserServiceImp implements UserService {
   private final AppConfig appConfig;
   private final UserMapper userMapper;
 
+  /**
+   * Updates only user's data that are not null in an input object
+   * i.e. all null values in the input object are not transmitted to the database.
+   *
+   * @param userDto - user data
+   * @return UserDto
+   */
   @Override
   @Transactional
   public UserDto updateUserPartially(UserDto userDto) {
@@ -44,6 +56,12 @@ public class UserServiceImp implements UserService {
     return userMapper.toDto(savedUser);
   }
 
+  /**
+   * Updates a user data by provided data.
+   *
+   * @param userDto - user data
+   * @return UserDto
+   */
   @Override
   @Transactional
   public UserDto updateUser(UserDto userDto) {
@@ -54,6 +72,14 @@ public class UserServiceImp implements UserService {
     return userMapper.toDto(savedUser);
   }
 
+  /**
+   * Creates user if their age is greater than the value specified in the configuration file confing.properties.
+   * The user data must contain email, first name, last name, and birthdate.  Address and phone number are optional.
+   * The email must be unique.
+   *
+   * @param userDto - user data
+   * @return UserDto
+   */
   @Override
   @Transactional
   public UserDto createUser(UserDto userDto) {
@@ -85,6 +111,14 @@ public class UserServiceImp implements UserService {
     return userMapper.toDto(savedUser);
   }
 
+  /**
+   * Searches for users by the provided values for maxBirthdate and minBirthdate of a birthdate range.
+   * If the values are not provided returns all users contained in a database.
+   *
+   * @param searchFilter - searches parameters
+   * @param pageable - page settings
+   * @return Page<UserDto>
+   */
   @Override
   public Page<UserDto> searchUsers(SearchFilter searchFilter, Pageable pageable) {
     verifyPeriod(searchFilter.getMinBirthdate(), searchFilter.getMaxBirthdate());
