@@ -1,5 +1,6 @@
 package com.clearsolutions.service;
 
+import com.clearsolutions.TestDataGenerator;
 import com.clearsolutions.config.AppConfig;
 import com.clearsolutions.exceptionhandler.exceptions.EmailNotUniqueException;
 import com.clearsolutions.exceptionhandler.exceptions.PeriodNotValidException;
@@ -10,7 +11,6 @@ import com.clearsolutions.repository.UserRepository;
 import com.clearsolutions.repository.entity.User;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
-import com.clearsolutions.TestDataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +20,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -44,6 +47,9 @@ public class UserServiceImpTest {
   private static final LocalDate MAX_BIRTHDATE = LocalDate.of(1970, 1, 1);
   private static final LocalDate MIN_BIRTHDATE = LocalDate.of(1965, 1, 1);
   private static final UUID USER_ID = UUID.randomUUID();
+  private static final String BIRTHDAY_PROPERTY = "birthdate";
+  private static final int PAGE_NUMBER = 1;
+  private static final int PAGE_SIZE = 10;
 
   @InjectMocks
   private UserServiceImp userService;
@@ -155,9 +161,26 @@ public class UserServiceImpTest {
   }
 
   @Test
+  void searchUsers_shouldSortResult_whenPageRequestHasNoSorting() {
+    SearchFilter filterWithValidBirthdayPeriod = buildFilterWithValidBirthdayPeriod();
+    Pageable pageable = Pageable.ofSize(PAGE_SIZE);
+    User user = TestDataGenerator.generateUserEntity();
+    Page<User> page = new PageImpl<>(List.of(user));
+
+    when(appConfig.getUserSortBy()).thenReturn(BIRTHDAY_PROPERTY);
+    when(appConfig.getUserSortDirection()).thenReturn(Direction.DESC);
+    when(userRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+    Page<UserDto> recievedPage = userService.searchUsers(filterWithValidBirthdayPeriod, pageable);
+    UserDto receivedUser = recievedPage.getContent().get(0);
+
+    verifyUserDto(user, receivedUser);
+  }
+
+  @Test
   void searchUsers_shouldReturnPageWithAllUsers_whenSearchFilterHasNoBirthdate() {
     SearchFilter emptySearchFilter = new SearchFilter();
-    Pageable pageable = Pageable.ofSize(10);
+    Pageable pageable = generateSortedPageRequest();
     User user = TestDataGenerator.generateUserEntity();
     Page<User> page = new PageImpl<>(List.of(user));
 
@@ -172,7 +195,7 @@ public class UserServiceImpTest {
   @Test
   void searchUsers_shouldReturnPageWithUsers_whenBirthdayPeriodIsValid() {
     SearchFilter filterWithValidBirthdayPeriod = buildFilterWithValidBirthdayPeriod();
-    Pageable pageable = Pageable.ofSize(10);
+    Pageable pageable = generateSortedPageRequest();
     User user = TestDataGenerator.generateUserEntity();
     Page<User> page = new PageImpl<>(List.of(user));
 
@@ -188,6 +211,11 @@ public class UserServiceImpTest {
     return SearchFilter.builder()
         .minBirthdate(MIN_BIRTHDATE)
         .maxBirthdate(MIN_BIRTHDATE).build();
+  }
+
+  private Pageable generateSortedPageRequest() {
+    Sort sort = Sort.by(Direction.DESC, BIRTHDAY_PROPERTY);
+    return PageRequest.of(PAGE_NUMBER, PAGE_SIZE, sort);
   }
 
   @Test

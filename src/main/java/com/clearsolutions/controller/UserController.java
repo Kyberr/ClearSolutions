@@ -135,19 +135,7 @@ public class UserController {
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public Page<UserDto> searchUsers(@ParameterObject SearchFilter searchFilter,
                                    @ParameterObject Pageable pageable) {
-    pageable = setDefaultSortIfNeeded(pageable);
     return userService.searchUsers(searchFilter, pageable);
-  }
-
-  private Pageable setDefaultSortIfNeeded(Pageable pageable) {
-    if (pageable.getSort().isUnsorted()) {
-      Sort defaulSort = Sort.by(appConfig.getUserSortDirection(), appConfig.getUserSortBy());
-      return PageRequest.of(
-          pageable.getPageNumber(),
-          pageable.getPageSize(),
-          pageable.getSortOr(defaulSort));
-    }
-    return pageable;
   }
 
   /**
