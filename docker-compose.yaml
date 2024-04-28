@@ -1,0 +1,15 @@
+services:
+  user-service:
+    image: clearsolutions/user-service
+    build:
+      context: ./
+      target: development
+    ports:
+      - 8081:8081
+      - 8000:8000
+    volumes:
+      - h2-volume:$HOME/h2/users
+
+volumes:
+  h2-volume:
+

@@ -15,3 +15,8 @@ spring:
   flyway:
     enabled: true
     validate-on-migrate: true
+
+application:
+  minimal-age-in-years: 18
+  user-sort-by: birthdate
+  user-sort-direction: DESC

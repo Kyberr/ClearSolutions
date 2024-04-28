@@ -14,7 +14,7 @@
   <artifactId>ClearSolutions</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>ClearSolutions</name>
-  <description>Test project</description>
+  <description>The user service API</description>
   <properties>
     <java.version>17</java.version>
     <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
