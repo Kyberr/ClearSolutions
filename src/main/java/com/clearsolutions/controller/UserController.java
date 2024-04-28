@@ -152,9 +152,9 @@ public class UserController {
               description = "Wrong user ID format",
               content = @Content(examples = @ExampleObject("""
                   {
-                    "timestamp": "2024-04-26T09:31:38.392560445",
+                    "timestamp": "2024-04-28T02:25:24.693145097",
                     "errorCode": 400,
-                    "details": "Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; 
+                    "details": "Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; \
                     Invalid UUID string: 776c0aed-72fa-45d8-a"
                   }
                   """))),
