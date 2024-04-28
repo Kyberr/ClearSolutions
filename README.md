@@ -14,7 +14,7 @@ a database, i.e. its duplication is not allowed, the format must also correspond
 There is a restriction on possible values for the date of birth, age must not be lower than the value specified 
 in the configuration, the same restrictions are applied when updating existing data.
 
-The service has documentation according to the OpenAPI standard, that is available at:
+The service has documentation according to the OpenAPI standard and when the service runs it is available at:
 
 http://localhost:8081/swagger-ui/index.html
 
