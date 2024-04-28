@@ -17,14 +17,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.Objects;
 import java.util.UUID;
 
 import static java.util.Objects.nonNull;
 
+/**
+ * The service class for the user entity.
+ *
+ * @author Oleksandr Semenchenko
+ */
 @Service
 @RequiredArgsConstructor
 @Log4j2
@@ -34,16 +39,60 @@ public class UserServiceImp implements UserService {
   private final AppConfig appConfig;
   private final UserMapper userMapper;
 
+  /**
+   * Updates only user's data that are not null in the input object
+   * i.e. all null values in the input object are not transmitted to the database.
+   *
+   * @param userDto - user data
+   * @return UserDto
+   */
   @Override
+  @Transactional
+  public UserDto updateUserPartially(UserDto userDto) {
+    User user = userRepository.findById(userDto.getId())
+        .orElseThrow(() -> new UserNotFoundException(userDto.getId()));
+
+    if (nonNull(userDto.getBirthdate())) {
+      verifyUserAge(userDto.getBirthdate());
+    }
+
+    if (nonNull(userDto.getEmail())) {
+      verifyIfEmailUnique(userDto.getEmail());
+    }
+    User updatedUser = userMapper.updateEntityByNotNullValues(userDto, user);
+    User savedUser = userRepository.save(updatedUser);
+    return userMapper.toDto(savedUser);
+  }
+
+  /**
+   * Updates user data by provided data. The email must be unique
+   * and the user's age be greater than the value specified in the configuration file confing.properties.
+   *
+   * @param userDto - user data
+   * @return UserDto
+   */
+  @Override
+  @Transactional
   public UserDto updateUser(UserDto userDto) {
     User user = userRepository.findById(userDto.getId())
         .orElseThrow(() -> new UserNotFoundException(userDto.getId()));
+    verifyUserAge(userDto.getBirthdate());
+    verifyIfEmailUnique(userDto.getEmail());
     User updatedUser = userMapper.mergeWithDto(userDto, user);
     User savedUser = userRepository.save(updatedUser);
     return userMapper.toDto(savedUser);
   }
 
+  /**
+   * Creates user if their age is greater than the value specified in the configuration file confing.properties.
+   * The user data must contain email, first name, last name, and birthdate.  Address and phone number are optional.
+   * The email must be unique.
+   *
+   * @param userDto - user data
+   * @return UserDto
+   */
   @Override
+  @Transactional
   public UserDto createUser(UserDto userDto) {
     verifyUserAge(userDto.getBirthdate());
     verifyIfEmailUnique(userDto.getEmail());
@@ -73,6 +122,14 @@ public class UserServiceImp implements UserService {
     return userMapper.toDto(savedUser);
   }
 
+  /**
+   * Searches for users by the provided values for maxBirthdate and minBirthdate of a birthdate range.
+   * If the values are not provided returns all users contained in a database.
+   *
+   * @param searchFilter - searches parameters
+   * @param pageable - page settings
+   * @return Page<UserDto>
+   */
   @Override
   public Page<UserDto> searchUsers(SearchFilter searchFilter, Pageable pageable) {
     verifyPeriod(searchFilter.getMinBirthdate(), searchFilter.getMaxBirthdate());
@@ -88,6 +145,7 @@ public class UserServiceImp implements UserService {
   }
 
   @Override
+  @Transactional
   public void deleteUserById(UUID userId) {
     User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
     userRepository.delete(user);

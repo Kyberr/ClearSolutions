@@ -10,7 +10,7 @@ import com.clearsolutions.repository.UserRepository;
 import com.clearsolutions.repository.entity.User;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
-import com.clearsolutions.util.TestDataGenerator;
+import com.clearsolutions.TestDataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +58,47 @@ public class UserServiceImpTest {
   void setUp() {
     UserMapper userMapper = Mappers.getMapper(UserMapper.class);
     ReflectionTestUtils.setField(userService, USER_MAPPER_FIELD, userMapper);
+  }
+
+  @Test
+  void updateUserPartially_shouldUpdateUser_whenUserIsInDb() {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    userDto.setId(USER_ID);
+    User user = TestDataGenerator.generateUserEntity();
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenReturn(user);
+    UserDto updatedUser = userService.updateUserPartially(userDto);
+
+    verifyUserDto(user, updatedUser);
+  }
+
+  @Test
+  void updateUserPartially_shouldThrowEmailNotUniqueException_whenProvidedEmailIsNotUnique() {
+    UserDto userDto = buildUserDtoWithValidBirthdate();
+    userDto.setId(USER_ID);
+    User user = TestDataGenerator.generateUserEntity();
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+    when(userRepository.existsByEmail(any(String.class))).thenReturn(true);
+
+    assertThrows(EmailNotUniqueException.class, () -> userService.updateUserPartially(userDto));
+  }
+
+  @Test
+  void updateUserPartially_shouldThrowUserAgeViolationException_whenUserAgeIsNotValid() {
+    UserDto userDto = buildUserDtoWithNotValidBirthday();
+    userDto.setId(USER_ID);
+    User user = TestDataGenerator.generateUserEntity();
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+
+    assertThrows(UserAgeViolationException.class, () -> userService.updateUserPartially(userDto));
+  }
+
+  @Test
+  void updateUserPartially_shouldThrowUserNotFoundException_whenUserIsNotInDb() {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    userDto.setId(USER_ID);
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
+    assertThrows(UserNotFoundException.class, () -> userService.updateUserPartially(userDto));
   }
 
   @Test
@@ -151,7 +192,7 @@ public class UserServiceImpTest {
 
   @Test
   void createUser_shouldSaveAndReturnUser_whenUserDataIsValid() {
-    UserDto userDto = buildValidUserDto();
+    UserDto userDto = buildUserDtoWithValidBirthdate();
     User user = TestDataGenerator.generateUserEntity();
 
     when(appConfig.getMinimalAgeInYears()).thenReturn(MINIMAL_AGE_IN_YEARS);
@@ -161,13 +202,6 @@ public class UserServiceImpTest {
     UserDto savedUser = userService.createUser(userDto);
 
     verifyUserDto(user, savedUser);
-  }
-
-  private UserDto buildValidUserDto() {
-    UserDto userDto = TestDataGenerator.generateUserDto();
-    LocalDate validUserBirthdate = generateValidUserBirthdate();
-    userDto.setBirthdate(validUserBirthdate);
-    return userDto;
   }
 
   private void verifyUserDto(User expectedUser, UserDto actualUser) {
@@ -182,7 +216,7 @@ public class UserServiceImpTest {
 
   @Test
   void createUser_shouldThrowEmailNotUniqueException_whenSuchEmailIsAlreadyInDb() {
-    UserDto userWithNotUniqueEmail = buildUserDtoWithNotUniqueEmail();
+    UserDto userWithNotUniqueEmail = buildUserDtoWithValidBirthdate();
 
     when(appConfig.getMinimalAgeInYears()).thenReturn(MINIMAL_AGE_IN_YEARS);
     when(userRepository.existsByEmail(userWithNotUniqueEmail.getEmail())).thenReturn(true);
@@ -190,7 +224,7 @@ public class UserServiceImpTest {
     assertThrows(EmailNotUniqueException.class, () -> userService.createUser(userWithNotUniqueEmail));
   }
 
-  private UserDto buildUserDtoWithNotUniqueEmail() {
+  private UserDto buildUserDtoWithValidBirthdate() {
     UserDto userDto = TestDataGenerator.generateUserDto();
     LocalDate validUserBirthdate = generateValidUserBirthdate();
     userDto.setBirthdate(validUserBirthdate);

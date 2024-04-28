@@ -1,7 +1,8 @@
 package com.clearsolutions.controller;
 
+import com.clearsolutions.config.AppConfig;
 import com.clearsolutions.service.dto.UserDto;
-import com.clearsolutions.util.TestDataGenerator;
+import com.clearsolutions.TestDataGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -13,12 +14,15 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -42,6 +46,7 @@ public class UserControllerIntegrationTest {
   private static final String ADDRESS = "some address";
   private static final String PHONE_NUMBER = "+38(097)-100-00-00";
   private static final String USER_ID = "92f226ce-f1a0-4514-9466-e811648a5218";
+  private static final int ONE_YEAR = 1;
 
   @Autowired
   private MockMvc mockMvc;
@@ -49,9 +54,22 @@ public class UserControllerIntegrationTest {
   @Autowired
   private ObjectMapper objectMapper;
 
+  @Autowired
+  private AppConfig appConfig;
+
+  @Test
+  void updateUserPartially_shouldReturnStatus200_whenUserIsInDb() throws Exception {
+    UserDto userDto = buildUserDtoWithValidBirthdate();
+    String requestBody = objectMapper.writeValueAsString(userDto);
+
+    mockMvc.perform(patch(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON)
+          .content(requestBody))
+        .andExpect(status().isOk());
+  }
+
   @Test
   void updateUser_shouldReturnStatus200_whenUserIsInDb() throws Exception {
-    UserDto userDto = TestDataGenerator.generateUserDto();
+    UserDto userDto = buildUserDtoWithValidBirthdate();
     String requestBody = objectMapper.writeValueAsString(userDto);
 
     mockMvc.perform(put(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON).content(requestBody))
@@ -84,11 +102,23 @@ public class UserControllerIntegrationTest {
 
   @Test
   void createUser_shouldReturnStatus201_whenRequested() throws Exception {
-    UserDto userDto = TestDataGenerator.generateUserDto();
+    UserDto userDto = buildUserDtoWithValidBirthdate();
     String requestBody = objectMapper.writeValueAsString(userDto);
 
     mockMvc.perform(post(V1 + USERS_URL).contentType(APPLICATION_JSON).content(requestBody))
         .andExpect(status().isCreated())
         .andExpect(header().string(LOCATION_HEADER_FIELD, containsString(USERS_URL)));
+  }
+
+  private UserDto buildUserDtoWithValidBirthdate() {
+    UserDto userDto = TestDataGenerator.generateUserDto();
+    LocalDate validUserBirthdate = generateValidUserBirthdate();
+    userDto.setBirthdate(validUserBirthdate);
+    return userDto;
+  }
+
+  private LocalDate generateValidUserBirthdate() {
+    int validUserAge = appConfig.getMinimalAgeInYears() + ONE_YEAR;
+    return LocalDate.now().minusYears(validUserAge);
   }
 }
