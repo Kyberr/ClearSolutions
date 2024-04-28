@@ -141,7 +141,7 @@ public class UserServiceImp implements UserService {
    * @return Page<UserDto>
    */
   @Override
-  @Cacheable(value = USERS_CACHE, key = "{ #root.targetClass.name, #root.methodName, #seachFilter, #pageable }")
+  @Cacheable(value = USERS_CACHE, key = "{ #root.methodName, #seachFilter, #pageable }")
   public Page<UserDto> searchUsers(SearchFilter searchFilter, Pageable pageable) {
     verifyPeriod(searchFilter.getMinBirthdate(), searchFilter.getMaxBirthdate());
     Specification<User> specification = UserSpecification.getSpecification(searchFilter);
