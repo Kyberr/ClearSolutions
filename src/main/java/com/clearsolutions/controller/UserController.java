@@ -1,5 +1,6 @@
 package com.clearsolutions.controller;
 
+import com.clearsolutions.config.AppConfig;
 import com.clearsolutions.service.UserService;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
@@ -14,7 +15,9 @@ import io.swagger.v3.oas.annotations.servers.Server;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -55,6 +58,7 @@ public class UserController {
   private static final String USER_URL = "/users/{id}";
 
   private final UserService userService;
+  private final AppConfig appConfig;
 
   /**
    * Creates a user if the data contains a first name, a last name, a birthdate and an email.
@@ -131,7 +135,19 @@ public class UserController {
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public Page<UserDto> searchUsers(@ParameterObject SearchFilter searchFilter,
                                    @ParameterObject Pageable pageable) {
+    pageable = setDefaultSortIfNeeded(pageable);
     return userService.searchUsers(searchFilter, pageable);
+  }
+
+  private Pageable setDefaultSortIfNeeded(Pageable pageable) {
+    if (pageable.getSort().isUnsorted()) {
+      Sort defaulSort = Sort.by(appConfig.getUserSortDirection(), appConfig.getUserSortBy());
+      return PageRequest.of(
+          pageable.getPageNumber(),
+          pageable.getPageSize(),
+          pageable.getSortOr(defaulSort));
+    }
+    return pageable;
   }
 
   /**

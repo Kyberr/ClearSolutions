@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
 @EnableConfigurationProperties(AppConfig.class)
-@PropertySource("classpath:/config.properties")
+@PropertySource("classpath:/application.yaml")
 @EnableCaching
 @EnableTransactionManagement
 public class ClearSolutionsApplication {
