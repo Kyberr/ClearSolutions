@@ -13,6 +13,8 @@ import com.clearsolutions.service.specification.SearchFilter;
 import com.clearsolutions.service.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +39,8 @@ import static java.util.Objects.nonNull;
 @Log4j2
 public class UserServiceImp implements UserService {
 
+  private static final String USERS_CACHE = "users";
+
   private final UserRepository userRepository;
   private final AppConfig appConfig;
   private final UserMapper userMapper;
@@ -50,6 +54,7 @@ public class UserServiceImp implements UserService {
    */
   @Override
   @Transactional
+  @CacheEvict(value = USERS_CACHE, allEntries = true)
   public UserDto updateUserPartially(UserDto userDto) {
     User user = userRepository.findById(userDto.getId())
         .orElseThrow(() -> new UserNotFoundException(userDto.getId()));
@@ -75,6 +80,7 @@ public class UserServiceImp implements UserService {
    */
   @Override
   @Transactional
+  @CacheEvict(value = USERS_CACHE, allEntries = true)
   public UserDto updateUser(UserDto userDto) {
     User user = userRepository.findById(userDto.getId())
         .orElseThrow(() -> new UserNotFoundException(userDto.getId()));
@@ -95,6 +101,7 @@ public class UserServiceImp implements UserService {
    */
   @Override
   @Transactional
+  @CacheEvict(value = USERS_CACHE, allEntries = true)
   public UserDto createUser(UserDto userDto) {
     verifyUserAge(userDto.getBirthdate());
     verifyIfEmailUnique(userDto.getEmail());
@@ -134,6 +141,7 @@ public class UserServiceImp implements UserService {
    * @return Page<UserDto>
    */
   @Override
+  @Cacheable(value = USERS_CACHE, key = "{ #root.targetClass.name, #root.methodName, #seachFilter, #pageable }")
   public Page<UserDto> searchUsers(SearchFilter searchFilter, Pageable pageable) {
     verifyPeriod(searchFilter.getMinBirthdate(), searchFilter.getMaxBirthdate());
     Specification<User> specification = UserSpecification.getSpecification(searchFilter);
@@ -161,6 +169,7 @@ public class UserServiceImp implements UserService {
 
   @Override
   @Transactional
+  @CacheEvict(value = USERS_CACHE, allEntries = true)
   public void deleteUserById(UUID userId) {
     User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
     userRepository.delete(user);
