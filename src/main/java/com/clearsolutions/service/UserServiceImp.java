@@ -40,7 +40,7 @@ public class UserServiceImp implements UserService {
   private final UserMapper userMapper;
 
   /**
-   * Updates only user's data that are not null in an input object
+   * Updates only user's data that are not null in the input object
    * i.e. all null values in the input object are not transmitted to the database.
    *
    * @param userDto - user data

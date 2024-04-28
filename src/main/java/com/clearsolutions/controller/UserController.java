@@ -70,8 +70,7 @@ public class UserController {
       responses = {
           @ApiResponse(
               responseCode = "201",
-              description = "A user has been crated"
-          ),
+              description = "A user has been crated"),
           @ApiResponse(
               responseCode = "400",
               description = "User data is not valid",
@@ -117,8 +116,7 @@ public class UserController {
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "Returns a page with users"
-          ),
+              description = "Returns a page with users"),
           @ApiResponse(
               responseCode = "400",
               description = "The request parameters are not valid",
@@ -148,8 +146,7 @@ public class UserController {
       responses = {
           @ApiResponse(
               responseCode = "204",
-              description = "A user was deleted successfully"
-          ),
+              description = "A user was deleted successfully"),
           @ApiResponse(
               responseCode = "400",
               description = "Wrong user ID format",
@@ -193,8 +190,7 @@ public class UserController {
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "Updates user with the provided data"
-          ),
+              description = "Updates user with the provided data"),
           @ApiResponse(
               responseCode = "400",
               description = "User data is not valid",
@@ -245,12 +241,11 @@ public class UserController {
   @Operation(
       summary = "Updates partially a user",
       operationId = "updateUserPartially",
-      description = "Updates only user's fields that are not null in an input object.",
+      description = "Updates only user's fields that are not null in the input object",
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "Updates partially a user"
-          ),
+              description = "Updates partially a user"),
           @ApiResponse(
               responseCode = "400",
               description = "User data is not valid",
