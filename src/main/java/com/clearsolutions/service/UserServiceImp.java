@@ -52,8 +52,11 @@ public class UserServiceImp implements UserService {
   private final Validator validator;
 
   /**
-   * Updates only user's data that are not null in the input object
+   * Updates only user's data that are not null in the input object.
    * i.e. all null values in the input object are not transmitted to the database.
+   * If email is present it must be unique and have a valid format.
+   * If a birthdate is present the user's age must be greater than the value
+   * specified in the configuration file confing.properties.
    *
    * @param userDto - user data
    * @return UserDto
@@ -124,9 +127,8 @@ public class UserServiceImp implements UserService {
   }
 
   /**
-   * Creates user if their age is greater than the value specified in the configuration file confing.properties.
-   * The user data must contain email, first name, last name, and birthdate.  Address and phone number are optional.
-   * The email must be unique.
+   * Creates user if their age is greater than the value specified in the configuration file confing.properties
+   * and their email is unique among already existing ones in a database.
    *
    * @param userDto - user data
    * @return UserDto
