@@ -11,6 +11,7 @@ import com.clearsolutions.repository.UserRepository;
 import com.clearsolutions.repository.entity.User;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,6 +37,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,6 +63,9 @@ public class UserServiceImpTest {
   @Mock
   private AppConfig appConfig;
 
+  @Mock
+  Validator validator;
+
   @BeforeEach
   void setUp() {
     UserMapper userMapper = Mappers.getMapper(UserMapper.class);
@@ -68,11 +74,15 @@ public class UserServiceImpTest {
 
   @Test
   void updateUserPartially_shouldUpdateUser_whenUserIsInDb() {
-    UserDto userDto = TestDataGenerator.generateUserDto();
+    UserDto userDto = buildUserDtoWithValidBirthdate();
     userDto.setId(USER_ID);
     User user = TestDataGenerator.generateUserEntity();
+
+    when(appConfig.getMinimalAgeInYears()).thenReturn(MINIMAL_AGE_IN_YEARS);
+    when(validator.validateProperty(any(UserDto.class), anyString())).thenReturn(new HashSet<>());
     when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
     when(userRepository.save(any(User.class))).thenReturn(user);
+
     UserDto updatedUser = userService.updateUserPartially(userDto);
 
     verifyUserDto(user, updatedUser);
@@ -82,8 +92,9 @@ public class UserServiceImpTest {
   void updateUserPartially_shouldThrowEmailNotUniqueException_whenProvidedEmailIsNotUnique() {
     UserDto userDto = buildUserDtoWithValidBirthdate();
     userDto.setId(USER_ID);
-    User user = TestDataGenerator.generateUserEntity();
-    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+
+    when(appConfig.getMinimalAgeInYears()).thenReturn(MINIMAL_AGE_IN_YEARS);
+    when(validator.validateProperty(any(UserDto.class), anyString())).thenReturn(new HashSet<>());
     when(userRepository.existsByEmail(any(String.class))).thenReturn(true);
 
     assertThrows(EmailNotUniqueException.class, () -> userService.updateUserPartially(userDto));
@@ -93,24 +104,24 @@ public class UserServiceImpTest {
   void updateUserPartially_shouldThrowUserAgeViolationException_whenUserAgeIsNotValid() {
     UserDto userDto = buildUserDtoWithNotValidBirthday();
     userDto.setId(USER_ID);
-    User user = TestDataGenerator.generateUserEntity();
-    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
 
     assertThrows(UserAgeViolationException.class, () -> userService.updateUserPartially(userDto));
   }
 
   @Test
   void updateUserPartially_shouldThrowUserNotFoundException_whenUserIsNotInDb() {
-    UserDto userDto = TestDataGenerator.generateUserDto();
-    userDto.setId(USER_ID);
+    UserDto userDto = UserDto.builder().id(USER_ID).build();
+
     when(userRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
     assertThrows(UserNotFoundException.class, () -> userService.updateUserPartially(userDto));
   }
 
   @Test
   void updateUser_shouldThrowNotFoundException_whenUserIsNotInDb() {
-    UserDto userDto = TestDataGenerator.generateUserDto();
+    UserDto userDto = buildUserDtoWithValidBirthdate();
     userDto.setId(UUID.randomUUID());
+
+    when(appConfig.getMinimalAgeInYears()).thenReturn(MINIMAL_AGE_IN_YEARS);
     when(userRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
     assertThrows(UserNotFoundException.class, () -> userService.updateUser(userDto));
@@ -118,10 +129,11 @@ public class UserServiceImpTest {
 
   @Test
   void updateUser_shouldUpdateAndReturnUser_whenUserIsInDb() {
-    UserDto userDto = TestDataGenerator.generateUserDto();
+    UserDto userDto = buildUserDtoWithValidBirthdate();
     User user = TestDataGenerator.generateUserEntity();
     userDto.setId(user.getId());
 
+    when(appConfig.getMinimalAgeInYears()).thenReturn(MINIMAL_AGE_IN_YEARS);
     when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
     when(userRepository.save(any(User.class))).thenReturn(user);
 

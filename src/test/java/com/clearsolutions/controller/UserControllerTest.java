@@ -1,5 +1,6 @@
 package com.clearsolutions.controller;
 
+import com.clearsolutions.TestDataGenerator;
 import com.clearsolutions.exceptionhandler.exceptions.EmailNotUniqueException;
 import com.clearsolutions.exceptionhandler.exceptions.PeriodNotValidException;
 import com.clearsolutions.exceptionhandler.exceptions.UserAgeViolationException;
@@ -7,18 +8,20 @@ import com.clearsolutions.exceptionhandler.exceptions.UserNotFoundException;
 import com.clearsolutions.service.UserService;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
-import com.clearsolutions.TestDataGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -55,11 +58,27 @@ public class UserControllerTest {
   private UserService userService;
 
   private String requestBody;
+  private UserDto userDto;
 
   @BeforeEach
   void setUp() throws JsonProcessingException {
-    UserDto user = TestDataGenerator.generateUserDto();
-    requestBody = objectMapper.writeValueAsString(user);
+    userDto = TestDataGenerator.generateUserDto();
+    requestBody = objectMapper.writeValueAsString(userDto);
+  }
+
+  @Test
+  void updateUserPartially_shouldReturnStatus400_whenUserEmailHasBadFormat() throws Exception {
+    ConstraintViolationException exception = Mockito.mock(ConstraintViolationException.class);
+    ConstraintViolation<?> violation = Mockito.mock(ConstraintViolation.class);
+
+    when(exception.getConstraintViolations()).thenReturn(Set.of(violation));
+    when(userService.updateUserPartially(any(UserDto.class))).thenThrow(exception);
+
+    mockMvc.perform(patch(V1 + USER_URL, USER_ID).contentType(APPLICATION_JSON).content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.details").hasJsonPath())
+        .andExpect(jsonPath("$.errorCode", is(400)))
+        .andExpect(jsonPath("$.timestamp").isNotEmpty());
   }
 
   @Test

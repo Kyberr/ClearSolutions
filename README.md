@@ -1,5 +1,5 @@
 
-### User service
+### User Service
 
 - _Test project for ClearSolutions_ 
 - _performed by Oleksandr Semenchenko_

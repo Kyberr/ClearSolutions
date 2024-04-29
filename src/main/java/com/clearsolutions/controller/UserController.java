@@ -1,6 +1,5 @@
 package com.clearsolutions.controller;
 
-import com.clearsolutions.config.AppConfig;
 import com.clearsolutions.service.UserService;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
@@ -56,7 +55,6 @@ public class UserController {
   private static final String USER_URL = "/users/{id}";
 
   private final UserService userService;
-  private final AppConfig appConfig;
 
   /**
    * Creates a user if the data contains a first name, a last name, a birthdate and an email.
@@ -262,7 +260,7 @@ public class UserController {
               responseCode = "404",
               description = "A user not found",
               content = @Content(examples = @ExampleObject("""
-                   {
+                  {
                     "timestamp": "2024-04-26T09:22:53.840331928",
                     "errorCode": 404,
                     "details": "User with id=776c0aed-72fa-45d8-a65a-8f3ae131097f not found"
