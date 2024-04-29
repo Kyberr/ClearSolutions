@@ -81,6 +81,7 @@ public class UserServiceImp implements UserService {
       Set<ConstraintViolation<UserDto>> violations = validator.validateProperty(userDto, EMAIL_FIELD);
 
       if (!violations.isEmpty()) {
+        log.debug("The email has a bad format");
         throw new ConstraintViolationException(violations);
       }
     }
