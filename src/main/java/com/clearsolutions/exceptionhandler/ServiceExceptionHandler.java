@@ -3,6 +3,8 @@ package com.clearsolutions.exceptionhandler;
 import com.clearsolutions.exceptionhandler.exceptions.EmailNotUniqueException;
 import com.clearsolutions.exceptionhandler.exceptions.NotFoundException;
 import com.clearsolutions.exceptionhandler.exceptions.RestrictionViolationException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -13,9 +15,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
 
 @RestControllerAdvice
 public class ServiceExceptionHandler {
@@ -23,6 +29,22 @@ public class ServiceExceptionHandler {
   private static final String DETAILS_FIELD = "details";
   private static final String ERROR_CODE_FIELD = "errorCode";
   private static final String TIMESTAMP_FILED = "timestamp";
+
+  @ExceptionHandler(ConstraintViolationException.class)
+  protected ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException e) {
+    Map<String, String> violationDetails = getConstraintViolationDetails(e);
+    Map<String, Object> responseBody = buildErrorResponseBody(HttpStatus.BAD_REQUEST, violationDetails);
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+  }
+
+  private Map<String, String> getConstraintViolationDetails(ConstraintViolationException e) {
+    Map<String, String> violationDetails = new HashMap<>();
+
+    for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
+      violationDetails.put(String.valueOf(violation.getPropertyPath()), violation.getMessage());
+    }
+    return violationDetails;
+  }
 
   @ExceptionHandler(TypeMismatchException.class)
   protected ResponseEntity<Object> handleTypeMismatchException(TypeMismatchException e) {

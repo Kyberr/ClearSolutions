@@ -1,6 +1,5 @@
 package com.clearsolutions.controller;
 
-import com.clearsolutions.config.AppConfig;
 import com.clearsolutions.service.UserService;
 import com.clearsolutions.service.dto.UserDto;
 import com.clearsolutions.service.specification.SearchFilter;
@@ -12,6 +11,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.servers.Server;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -31,8 +33,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Set;
 import java.util.UUID;
 
+import static java.util.Objects.nonNull;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -56,7 +60,6 @@ public class UserController {
   private static final String USER_URL = "/users/{id}";
 
   private final UserService userService;
-  private final AppConfig appConfig;
 
   /**
    * Creates a user if the data contains a first name, a last name, a birthdate and an email.
@@ -262,7 +265,7 @@ public class UserController {
               responseCode = "404",
               description = "A user not found",
               content = @Content(examples = @ExampleObject("""
-                   {
+                  {
                     "timestamp": "2024-04-26T09:22:53.840331928",
                     "errorCode": 404,
                     "details": "User with id=776c0aed-72fa-45d8-a65a-8f3ae131097f not found"
