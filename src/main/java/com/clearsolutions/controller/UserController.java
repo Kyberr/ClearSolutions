@@ -58,7 +58,7 @@ public class UserController {
 
   /**
    * Creates a user if the data contains a first name, a last name, a birthdate and an email.
-   * The user's age also must be greater than 18 years old and the email must be unique having a valid format.
+   * Address and phone number are optional. Email must have a valid format.
    *
    * @param user - user data
    * @return ResponseEntity<Void>
@@ -103,7 +103,7 @@ public class UserController {
   }
 
   /**
-   * Searches for users by birthdate range. Before the searching it checks that “From” is less than “To”.
+   * Searches for users by birthdate range.
    *
    * @param searchFilter - search parameters
    * @param pageable - page settings
@@ -135,7 +135,7 @@ public class UserController {
   }
 
   /**
-   * Deletes a user if their present in the database.
+   * Deletes a user from a database.
    *
    * @param userId - a user ID
    */
@@ -178,7 +178,8 @@ public class UserController {
   }
 
   /**
-   * Updates user data with the provided data.
+   * Updates user data with the provided data if it contains a first name, a last name, a birthdate and an email.
+   * Address and phone number are optional. Email must have a valid format.
    *
    * @param userId - a user ID
    * @param user - user data
@@ -233,7 +234,7 @@ public class UserController {
   }
 
   /**
-   * Updates only user's fields that are not null in an input object.
+   * Updates user with provided data. There is no constraints for data of an input object.
    *
    * @param userId - a user ID
    * @param user - user data
